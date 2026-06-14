@@ -1,0 +1,9 @@
+# Treat all jar files as binary to avoid line-ending translation/corruption
+*.jar binary
+*.png binary
+*.webp binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.keystore binary
+*.jks binary

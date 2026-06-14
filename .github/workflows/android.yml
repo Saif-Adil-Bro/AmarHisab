@@ -33,18 +33,21 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
+          # Automatically downloads and configures a clean, verified Gradle distribution
+          # This completely bypasses any corrupt local gradle-wrapper.jar issues in Git
+          gradle-version: '9.3.1'
           # This action automatically caches Gradle dependency downloads and metadata
           cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
-          # Disable wrapper validation because the wrapper generated in AI Studio may have different checksums
+          # Disable wrapper validation as we use the managed Gradle distribution
           validate-wrappers: false
 
-      # Step 4: Grant execute permissions for the Gradle Wrapper script (gradlew)
+      # Step 4: Grant execute permissions for the local wrapper script (for future local runs)
       - name: Grant Execute Permission for Gradlew
-        run: chmod +x gradlew
+        run: chmod +x gradlew || true
 
-      # Step 5: Build Debug APK using the Gradle Wrapper
+      # Step 5: Build Debug APK using the clean Gradle distribution
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: gradle assembleDebug
 
       # Step 6: Upload the generated Debug APK artifact
       - name: Upload Debug APK Artifact
