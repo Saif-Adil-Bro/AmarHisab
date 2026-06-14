@@ -27,13 +27,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.work.*
 import com.example.ui.AddEditExpenseScreen
 import com.example.ui.DashboardScreen
 import com.example.ui.ShoppingListScreen
 import com.example.ui.SummaryScreen
 import com.example.ui.SettingsScreen
+import com.example.ui.ManageCategoriesScreen
+import com.example.ui.RecurringExpensesScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.ExpenseViewModel
+import com.example.worker.RecurringExpenseWorker
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     private val viewModel: ExpenseViewModel by viewModels {
@@ -42,6 +47,25 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        try {
+            val workRequest = PeriodicWorkRequestBuilder<RecurringExpenseWorker>(1, TimeUnit.DAYS)
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+                        .build()
+                )
+                .build()
+
+            WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+                "RecurringExpenseWorker",
+                ExistingPeriodicWorkPolicy.KEEP,
+                workRequest
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         enableEdgeToEdge()
         setContent {
             val themePref by viewModel.themePreference.collectAsState()
@@ -66,7 +90,10 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
     val appLanguage by viewModel.appLanguage.collectAsState()
     val isBangla = appLanguage == "Bangla"
 
-    val showBottomBar = currentRoute?.startsWith("add_edit") == false && currentRoute != "settings"
+    val showBottomBar = currentRoute?.startsWith("add_edit") == false &&
+                        currentRoute != "settings" &&
+                        currentRoute != "categories" &&
+                        currentRoute != "recurring_expenses"
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -180,6 +207,30 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
 
             composable("settings") {
                 SettingsScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToCategories = {
+                        navController.navigate("categories")
+                    },
+                    onNavigateToRecurring = {
+                        navController.navigate("recurring_expenses")
+                    }
+                )
+            }
+
+            composable("categories") {
+                ManageCategoriesScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable("recurring_expenses") {
+                RecurringExpensesScreen(
                     viewModel = viewModel,
                     onNavigateBack = {
                         navController.popBackStack()

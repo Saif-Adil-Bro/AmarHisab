@@ -37,6 +37,8 @@ import java.util.*
 fun SettingsScreen(
     viewModel: ExpenseViewModel,
     onNavigateBack: () -> Unit,
+    onNavigateToCategories: () -> Unit,
+    onNavigateToRecurring: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -194,6 +196,32 @@ fun SettingsScreen(
                     onClick = { showDeleteConfirmDialog = true },
                     tint = MaterialTheme.colorScheme.error,
                     testTag = "settings_clear_all_item"
+                )
+            }
+
+            // Section: CATEGORIES
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Spacer(modifier = Modifier.height(8.dp))
+                SectionHeader(title = "ক্যাটাগরি ও নিয়মিত খরচ")
+            }
+            item {
+                SettingsItem(
+                    icon = Icons.Default.Category,
+                    title = "ক্যাটাগরি ম্যানেজ করুন",
+                    subtitle = "ব্যক্তিগত ক্যাটাগরি, ইমোজি ও কালার পরিবর্তন করুন",
+                    onClick = onNavigateToCategories,
+                    testTag = "settings_categories_item"
+                )
+            }
+            item {
+                SettingsItem(
+                    icon = Icons.Default.Autorenew,
+                    title = "নিয়মিত খরচ (Recurring)",
+                    subtitle = "ভাড়া, বিল বা অন্যান্য নিয়মিত অটোমেটিক খরচ পরিচালনা করুন",
+                    onClick = onNavigateToRecurring,
+                    testTag = "settings_recurring_item"
                 )
             }
 

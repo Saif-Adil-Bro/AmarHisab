@@ -19,6 +19,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         val database = AppDatabase.getDatabase(application)
         repository = ExpenseRepository(database)
         userPrefs = UserPreferencesRepository(application)
+        processRecurringExpensesSync()
     }
 
     private val _activeProfileId = MutableStateFlow<Long?>(null)
@@ -52,6 +53,40 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Expose all categories. Seeding defaults if empty.
+    val allCategories: StateFlow<List<CategoryEntity>> = repository.allCategories
+        .onEach { list ->
+            if (list.isEmpty()) {
+                repository.deleteAllCategoriesAndRecreateDefaults()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun insertCategory(name: String, iconEmoji: String, colorHex: String) {
+        viewModelScope.launch {
+            repository.insertCategory(
+                CategoryEntity(
+                    name = name.trim(),
+                    iconEmoji = iconEmoji,
+                    colorHex = colorHex,
+                    isDefault = false
+                )
+            )
+        }
+    }
+
+    fun updateCategory(category: CategoryEntity) {
+        viewModelScope.launch {
+            repository.updateCategory(category)
+        }
+    }
+
+    fun deleteCategory(category: CategoryEntity) {
+        viewModelScope.launch {
+            repository.deleteCategory(category)
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val activeProfile: StateFlow<ProfileEntity?> = _activeProfileId
@@ -374,6 +409,90 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         val end = calendar.timeInMillis
 
         return Pair(start, end)
+    }
+
+    // Recurring Expenses
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val allRecurringExpenses: StateFlow<List<RecurringExpenseEntity>> = _activeProfileId
+        .flatMapLatest { id ->
+            if (id == null) flowOf(emptyList())
+            else repository.getAllRecurringExpenses(id)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun insertRecurringExpense(itemName: String, amount: Double, category: String, frequency: String, nextDueDate: Long) {
+        val pid = _activeProfileId.value ?: return
+        viewModelScope.launch {
+            repository.insertRecurringExpense(
+                RecurringExpenseEntity(
+                    profileId = pid,
+                    itemName = itemName.trim(),
+                    amount = amount,
+                    category = category,
+                    frequency = frequency,
+                    nextDueDate = nextDueDate,
+                    isActive = true
+                )
+            )
+        }
+    }
+
+    fun updateRecurringExpense(expense: RecurringExpenseEntity) {
+        viewModelScope.launch {
+            repository.updateRecurringExpense(expense)
+        }
+    }
+
+    fun deleteRecurringExpense(expense: RecurringExpenseEntity) {
+        viewModelScope.launch {
+            repository.deleteRecurringExpense(expense)
+        }
+    }
+
+    fun toggleRecurringExpenseActive(expense: RecurringExpenseEntity) {
+        viewModelScope.launch {
+            repository.updateRecurringExpense(expense.copy(isActive = !expense.isActive))
+        }
+    }
+
+    private fun processRecurringExpensesSync() {
+        viewModelScope.launch {
+            try {
+                val activeSec = repository.getActiveRecurringExpensesDirect()
+                val now = System.currentTimeMillis()
+                for (item in activeSec) {
+                    if (item.nextDueDate <= now) {
+                        var updatedDueDate = item.nextDueDate
+                        while (updatedDueDate <= now) {
+                            repository.insertExpense(
+                                ExpenseEntity(
+                                    profileId = item.profileId,
+                                    itemName = item.itemName,
+                                    price = item.amount,
+                                    currency = "৳",
+                                    category = item.category,
+                                    date = updatedDueDate
+                                )
+                            )
+                            val calendar = Calendar.getInstance().apply {
+                                timeInMillis = updatedDueDate
+                            }
+                            when (item.frequency) {
+                                "DAILY" -> calendar.add(Calendar.DAY_OF_YEAR, 1)
+                                "WEEKLY" -> calendar.add(Calendar.WEEK_OF_YEAR, 1)
+                                "MONTHLY" -> calendar.add(Calendar.MONTH, 1)
+                                "YEARLY" -> calendar.add(Calendar.YEAR, 1)
+                                else -> calendar.add(Calendar.DAY_OF_YEAR, 1)
+                            }
+                            updatedDueDate = calendar.timeInMillis
+                        }
+                        repository.updateRecurringExpense(item.copy(nextDueDate = updatedDueDate))
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     class Factory(private val application: Application) : ViewModelProvider.Factory {

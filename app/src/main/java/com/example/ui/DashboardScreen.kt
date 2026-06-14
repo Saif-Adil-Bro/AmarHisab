@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.ExpenseEntity
+import com.example.data.CategoryEntity
 import com.example.viewmodel.ExpenseViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -50,6 +51,7 @@ fun DashboardScreen(
     val defaultCurrency by viewModel.defaultCurrency.collectAsStateWithLifecycle()
     val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
     val isBangla = appLanguage == "Bangla"
+    val customCategories by viewModel.allCategories.collectAsStateWithLifecycle()
 
     var expenseToDelete by remember { mutableStateOf<ExpenseEntity?>(null) }
 
@@ -492,7 +494,8 @@ fun DashboardScreen(
                             expense = expense,
                             isBangla = isBangla,
                             onEdit = { onNavigateToEdit(expense.id) },
-                            onDelete = { expenseToDelete = expense }
+                            onDelete = { expenseToDelete = expense },
+                            customCategories = customCategories
                         )
                     }
                 }
@@ -518,13 +521,17 @@ fun ExpenseItemCard(
     isBangla: Boolean,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    customCategories: List<CategoryEntity> = emptyList(),
     modifier: Modifier = Modifier
 ) {
     val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
     val formattedDate = remember(expense.date) { dateFormatter.format(Date(expense.date)) }
 
-    val localizedCategory = remember(expense.category, isBangla) {
-        if (isBangla) {
+    val localizedCategory = remember(expense.category, isBangla, customCategories) {
+        val customMatch = customCategories.find { it.name == expense.category }
+        if (customMatch != null) {
+            customMatch.name
+        } else if (isBangla) {
             when (expense.category) {
                 "Vegetables" -> "সবজি"
                 "Meat" -> "মাংস"
@@ -565,12 +572,12 @@ fun ExpenseItemCard(
             ) {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = getCategoryColor(expense.category).copy(alpha = 0.12f),
+                    color = getCategoryColor(expense.category, customCategories).copy(alpha = 0.12f),
                     modifier = Modifier.size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = getCategoryEmoji(expense.category),
+                            text = getCategoryEmoji(expense.category, customCategories),
                             fontSize = 24.sp
                         )
                     }
@@ -596,7 +603,7 @@ fun ExpenseItemCard(
                         Text(
                             text = localizedCategory,
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = getCategoryColor(expense.category),
+                            color = getCategoryColor(expense.category, customCategories),
                             maxLines = 1
                         )
                         Text(

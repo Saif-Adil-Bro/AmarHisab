@@ -6,6 +6,46 @@ class ExpenseRepository(private val database: AppDatabase) {
     private val profileDao = database.profileDao()
     private val expenseDao = database.expenseDao()
     private val shoppingListDao = database.shoppingListDao()
+    private val categoryDao = database.categoryDao()
+
+    // Categories
+    val allCategories: Flow<List<CategoryEntity>> = categoryDao.getAllCategories()
+
+    suspend fun insertCategory(category: CategoryEntity): Long {
+        return categoryDao.insertCategory(category)
+    }
+
+    suspend fun updateCategory(category: CategoryEntity) {
+        categoryDao.updateCategory(category)
+    }
+
+    suspend fun deleteCategory(category: CategoryEntity) {
+        categoryDao.deleteCategory(category)
+    }
+
+    suspend fun getCategoryByName(name: String): CategoryEntity? {
+        return categoryDao.getCategoryByName(name)
+    }
+
+    suspend fun getAllCategoriesDirect(): List<CategoryEntity> = categoryDao.getAllCategoriesDirect()
+
+    suspend fun insertCategories(categories: List<CategoryEntity>) {
+        categoryDao.insertCategories(categories)
+    }
+
+    suspend fun deleteAllCategoriesAndRecreateDefaults() {
+        categoryDao.deleteAllCategories()
+        val defaults = listOf(
+            CategoryEntity(name = "বাজার", iconEmoji = "🛒", colorHex = "#1565C0", isDefault = true),
+            CategoryEntity(name = "শাকসবজি", iconEmoji = "🥬", colorHex = "#2E7D32", isDefault = true),
+            CategoryEntity(name = "মাছ ও মাংস", iconEmoji = "🍗", colorHex = "#C62828", isDefault = true),
+            CategoryEntity(name = "যাতায়াত", iconEmoji = "🚗", colorHex = "#ED6C02", isDefault = true),
+            CategoryEntity(name = "বাসা ভাড়া", iconEmoji = "🏠", colorHex = "#4E342E", isDefault = true),
+            CategoryEntity(name = "বিদ্যুৎ বিল", iconEmoji = "💡", colorHex = "#EF6C00", isDefault = true),
+            CategoryEntity(name = "অন্যান্য", iconEmoji = "💰", colorHex = "#6A1B9A", isDefault = true)
+        )
+        categoryDao.insertCategories(defaults)
+    }
 
     // Profiles
     val allProfiles: Flow<List<ProfileEntity>> = profileDao.getAllProfiles()
@@ -102,6 +142,29 @@ class ExpenseRepository(private val database: AppDatabase) {
 
     suspend fun getShoppingItemById(id: Long): ShoppingListItemEntity? {
         return shoppingListDao.getItemById(id)
+    }
+
+    // Recurring Expenses
+    private val recurringExpenseDao = database.recurringExpenseDao()
+
+    fun getAllRecurringExpenses(profileId: Long): Flow<List<RecurringExpenseEntity>> =
+        recurringExpenseDao.getAllRecurringExpenses(profileId)
+
+    suspend fun getActiveRecurringExpensesDirect(): List<RecurringExpenseEntity> =
+        recurringExpenseDao.getActiveRecurringExpensesDirect()
+
+    suspend fun getRecurringExpenseById(id: Long): RecurringExpenseEntity? =
+        recurringExpenseDao.getRecurringExpenseById(id)
+
+    suspend fun insertRecurringExpense(expense: RecurringExpenseEntity): Long =
+        recurringExpenseDao.insertRecurringExpense(expense)
+
+    suspend fun updateRecurringExpense(expense: RecurringExpenseEntity) {
+        recurringExpenseDao.updateRecurringExpense(expense)
+    }
+
+    suspend fun deleteRecurringExpense(expense: RecurringExpenseEntity) {
+        recurringExpenseDao.deleteRecurringExpense(expense)
     }
 
     // Backup & Restore Support

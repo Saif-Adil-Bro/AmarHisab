@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.ExpenseEntity
+import com.example.data.CategoryEntity
 import com.example.viewmodel.ExpenseViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -38,6 +39,7 @@ fun SummaryScreen(
 ) {
     val expenses by viewModel.allExpenses.collectAsStateWithLifecycle()
     val activeProfile by viewModel.activeProfile.collectAsStateWithLifecycle()
+    val customCategories by viewModel.allCategories.collectAsStateWithLifecycle()
 
     val defaultCurrency by viewModel.defaultCurrency.collectAsStateWithLifecycle()
     val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
@@ -318,19 +320,24 @@ fun SummaryScreen(
                         val percentageText = String.format(Locale.getDefault(), "%.1f%%", pct * 100)
                         val formattedCost = String.format(Locale.getDefault(), "%s%.2f", defaultCurrency, cost)
 
-                        val localizedCat = if (isBangla) {
-                            when (cat) {
-                                "Vegetables" -> "সবজি"
-                                "Meat" -> "মাংস"
-                                "Grocery" -> "মুদিখানা"
-                                "Dairy/Eggs" -> "দুধ/ডিম"
-                                "Fruits" -> "ফলমূল"
-                                "Beverages" -> "পানীয়"
-                                "Snacks" -> "নাস্তা"
-                                "Others" -> "অন্যান্য"
-                                else -> cat
-                            }
-                        } else cat
+                        val localizedCat = remember(cat, isBangla, customCategories) {
+                            val customMatch = customCategories.find { it.name == cat }
+                            if (customMatch != null) {
+                                customMatch.name
+                            } else if (isBangla) {
+                                when (cat) {
+                                    "Vegetables" -> "সবজি"
+                                    "Meat" -> "মাংস"
+                                    "Grocery" -> "মুদিখানা"
+                                    "Dairy/Eggs" -> "দুধ/ডিম"
+                                    "Fruits" -> "ফলমূল"
+                                    "Beverages" -> "পানীয়"
+                                    "Snacks" -> "নাস্তা"
+                                    "Others" -> "অন্যান্য"
+                                    else -> cat
+                                }
+                            } else cat
+                        }
 
                         Card(
                             modifier = Modifier
@@ -355,12 +362,12 @@ fun SummaryScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Surface(
                                             shape = CircleShape,
-                                            color = getCategoryColor(cat).copy(alpha = 0.12f),
+                                            color = getCategoryColor(cat, customCategories).copy(alpha = 0.12f),
                                             modifier = Modifier.size(36.dp)
                                         ) {
                                             Box(contentAlignment = Alignment.Center) {
                                                 Text(
-                                                    text = getCategoryEmoji(cat),
+                                                    text = getCategoryEmoji(cat, customCategories),
                                                     fontSize = 18.sp
                                                 )
                                             }
@@ -402,7 +409,7 @@ fun SummaryScreen(
                                             .fillMaxHeight()
                                             .fillMaxWidth(fraction = pct.toFloat())
                                             .clip(RoundedCornerShape(100.dp))
-                                            .background(getCategoryColor(cat))
+                                            .background(getCategoryColor(cat, customCategories))
                                     )
                                 }
                             }

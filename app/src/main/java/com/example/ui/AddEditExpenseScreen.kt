@@ -43,6 +43,7 @@ fun AddEditExpenseScreen(
     val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
     val defaultCurrency by viewModel.defaultCurrency.collectAsStateWithLifecycle()
     val isBangla = appLanguage == "Bangla"
+    val categoriesFromDb by viewModel.allCategories.collectAsStateWithLifecycle()
 
     // Form states
     var itemName by remember { mutableStateOf("") }
@@ -59,7 +60,7 @@ fun AddEditExpenseScreen(
     var inputError by remember { mutableStateOf<String?>(null) }
 
     // Fetch and populate if edit mode or set default currency
-    LaunchedEffect(expenseId, defaultCurrency) {
+    LaunchedEffect(expenseId, defaultCurrency, categoriesFromDb) {
         if (isEditMode) {
             val db = viewModel.allExpenses.value.find { it.id == expenseId }
             if (db != null) {
@@ -71,6 +72,10 @@ fun AddEditExpenseScreen(
             }
         } else {
             selectedCurrency = defaultCurrency
+            if (category == "Grocery" && categoriesFromDb.isNotEmpty()) {
+                val hasBajar = categoriesFromDb.any { it.name == "বাজার" }
+                category = if (hasBajar) "বাজার" else categoriesFromDb.first().name
+            }
         }
     }
 
@@ -301,7 +306,7 @@ fun AddEditExpenseScreen(
             // Category Selection Dropdown
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = if (isBangla) "বিভাগ (Category)" else "Category",
+                    text = if (isBangla) "ক্যাটাগরি" else "Category",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -310,21 +315,16 @@ fun AddEditExpenseScreen(
                     expanded = isCategoryExpanded,
                     onExpandedChange = { isCategoryExpanded = !isCategoryExpanded }
                 ) {
+                    val selectedCategoryObj = categoriesFromDb.find { it.name == category }
+                    val displayText = if (selectedCategoryObj != null) {
+                        "${selectedCategoryObj.iconEmoji} ${selectedCategoryObj.name}"
+                    } else {
+                        category
+                    }
+
                     OutlinedTextField(
                         readOnly = true,
-                        value = if (isBangla) {
-                            when (category) {
-                                "Vegetables" -> "সবজি"
-                                "Meat" -> "মাংস"
-                                "Grocery" -> "মুদিখানা"
-                                "Dairy/Eggs" -> "দুধ/ডিম"
-                                "Fruits" -> "ফলমূল"
-                                "Beverages" -> "পানীয়"
-                                "Snacks" -> "নাস্তা"
-                                "Others" -> "অন্যান্য"
-                                else -> category
-                            }
-                        } else category,
+                        value = displayText,
                         onValueChange = {},
                         modifier = Modifier
                             .fillMaxWidth()
@@ -338,27 +338,13 @@ fun AddEditExpenseScreen(
                         expanded = isCategoryExpanded,
                         onDismissRequest = { isCategoryExpanded = false }
                     ) {
-                        categoriesList.forEach { cat ->
+                        categoriesFromDb.forEach { dbCat ->
                             DropdownMenuItem(
                                 text = {
-                                    Text(
-                                        if (isBangla) {
-                                            when (cat) {
-                                                "Vegetables" -> "সবজি (Vegetables)"
-                                                "Meat" -> "মাংস (Meat)"
-                                                "Grocery" -> "মুদিখানা (Grocery)"
-                                                "Dairy/Eggs" -> "দুধ/ডিম (Dairy/Eggs)"
-                                                "Fruits" -> "ফলমূল (Fruits)"
-                                                "Beverages" -> "পানীয় (Beverages)"
-                                                "Snacks" -> "নাস্তা (Snacks)"
-                                                "Others" -> "অন্যান্য (Others)"
-                                                else -> cat
-                                            }
-                                        } else cat
-                                    )
+                                    Text(text = "${dbCat.iconEmoji} ${dbCat.name}")
                                 },
                                 onClick = {
-                                    category = cat
+                                    category = dbCat.name
                                     isCategoryExpanded = false
                                 },
                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
