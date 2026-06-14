@@ -48,6 +48,7 @@ fun ManageCategoriesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 title = {
                     Text(
                         text = "ক্যাটাগরি ম্যানেজমেন্ট",

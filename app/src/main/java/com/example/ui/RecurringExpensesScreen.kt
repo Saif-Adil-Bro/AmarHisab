@@ -51,6 +51,7 @@ fun RecurringExpensesScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 title = {
                     Text(
                         text = "নিয়মিত খরচ",

@@ -99,6 +99,7 @@ fun ProfileSwitcherAppBar(
 
     TopAppBar(
         modifier = modifier.testTag("profile_switcher_topappbar"),
+        windowInsets = WindowInsets(0, 0, 0, 0),
         title = {
             Text(
                 text = if (isBangla) titleText else "Weekly Pantry",
