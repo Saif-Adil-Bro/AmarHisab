@@ -109,6 +109,12 @@ class ExpenseRepository(private val database: AppDatabase) {
     suspend fun getAllExpensesDirect(): List<ExpenseEntity> = expenseDao.getAllExpensesDirect()
     suspend fun getAllShoppingItemsDirect(): List<ShoppingListItemEntity> = shoppingListDao.getAllShoppingItemsDirect()
 
+    suspend fun clearAllData() {
+        shoppingListDao.deleteAllShoppingItems()
+        expenseDao.deleteAllExpenses()
+        profileDao.deleteAllProfiles()
+    }
+
     suspend fun restoreDatabase(
         profiles: List<ProfileEntity>,
         expenses: List<ExpenseEntity>,

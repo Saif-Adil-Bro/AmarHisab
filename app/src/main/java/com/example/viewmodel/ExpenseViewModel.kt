@@ -123,6 +123,22 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
+    val budgetUsagePercentage: StateFlow<Double> = combine(monthlyTotal, activeProfile) { total, profile ->
+        val budget = profile?.monthlyBudget ?: 0.0
+        calculateBudgetUsagePercentage(total, budget)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    fun calculateBudgetUsagePercentage(spent: Double, budget: Double): Double {
+        return if (budget > 0.0) (spent / budget) * 100.0 else 0.0
+    }
+
+    fun updateMonthlyBudget(budget: Double) {
+        val currentProfile = activeProfile.value ?: return
+        viewModelScope.launch {
+            repository.updateProfile(currentProfile.copy(monthlyBudget = budget))
+        }
+    }
+
     // Profiles API
     fun selectProfile(profileId: Long) {
         _activeProfileId.value = profileId
@@ -230,6 +246,23 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun deleteProfile(profile: ProfileEntity) {
+        viewModelScope.launch {
+            // If the deleted profile is the active profile, switch active profile to another one
+            if (_activeProfileId.value == profile.id) {
+                val otherProfile = allProfiles.value.firstOrNull { it.id != profile.id }
+                if (otherProfile != null) {
+                    _activeProfileId.value = otherProfile.id
+                }
+            }
+            // If it is the default launch profile, clear it
+            if (defaultProfileId.value == profile.id) {
+                userPrefs.saveDefaultProfileId(null)
+            }
+            repository.deleteProfile(profile)
+        }
+    }
+
     fun deleteExpense(expense: ExpenseEntity) {
         viewModelScope.launch {
             repository.deleteExpense(expense)
@@ -277,6 +310,13 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     fun deleteShoppingItem(item: ShoppingListItemEntity) {
         viewModelScope.launch {
             repository.deleteShoppingItem(item)
+        }
+    }
+
+    fun clearAllData() {
+        viewModelScope.launch {
+            repository.clearAllData()
+            _activeProfileId.value = null
         }
     }
 

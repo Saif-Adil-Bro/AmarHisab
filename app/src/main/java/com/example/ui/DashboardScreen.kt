@@ -38,7 +38,8 @@ fun DashboardScreen(
     viewModel: ExpenseViewModel,
     onNavigateToAdd: () -> Unit,
     onNavigateToEdit: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToSettings: (() -> Unit)? = null
 ) {
     val expenses by viewModel.allExpenses.collectAsStateWithLifecycle()
     val dailyTotal by viewModel.dailyTotal.collectAsStateWithLifecycle()
@@ -50,6 +51,8 @@ fun DashboardScreen(
     val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
     val isBangla = appLanguage == "Bangla"
 
+    var expenseToDelete by remember { mutableStateOf<ExpenseEntity?>(null) }
+
     val profileThemeColor = remember(activeProfile) {
         parseHexColor(activeProfile?.colorHex ?: "#6750A4")
     }
@@ -59,7 +62,8 @@ fun DashboardScreen(
         topBar = {
             ProfileSwitcherAppBar(
                 viewModel = viewModel,
-                titleText = "সাপ্তাহিক বাজার"
+                titleText = "সাপ্তাহিক বাজার",
+                onNavigateToSettings = onNavigateToSettings
             )
         },
         floatingActionButton = {
@@ -232,6 +236,124 @@ fun DashboardScreen(
                 }
             }
 
+            // Monthly Budget Progress Card at the top of the dashboard (below the daily expense card)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+            ) {
+                val budget = activeProfile?.monthlyBudget ?: 0.0
+                val percentage = if (budget > 0.0) (monthlyTotal / budget) * 100.0 else 0.0
+                val progressFraction = if (budget > 0.0) (monthlyTotal / budget).coerceIn(0.0, 1.0).toFloat() else 0f
+
+                Card(
+                    modifier = Modifier.fillMaxWidth().testTag("budget_progress_card"),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = if (isBangla) "মাসিক বাজেট অগ্রগতি" else "Monthly Budget Progress",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            
+                            if (budget > 0.0) {
+                                val percentString = String.format(Locale.US, "%.0f%%", percentage)
+                                Text(
+                                    text = if (isBangla) formatBengaliDigits(percentString) else percentString,
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Black
+                                    ),
+                                    color = when {
+                                        percentage < 80.0 -> MaterialTheme.colorScheme.primary
+                                        percentage < 100.0 -> Color(0xFFED6C02)
+                                        else -> MaterialTheme.colorScheme.error
+                                    }
+                                )
+                            }
+                        }
+
+                        if (budget <= 0.0) {
+                            Text(
+                                text = if (isBangla) "আপনি এখনো মাসিক বাজেট সেট করেননি।" else "You haven't set a monthly budget yet.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else {
+                            val budgetStr = String.format(Locale.US, "%,.0f", budget)
+                            val spentStr = String.format(Locale.US, "%,.0f", monthlyTotal)
+                            val progressStr = String.format(Locale.US, "%.0f", percentage)
+
+                            val bStr = if (isBangla) formatBengaliDigits(budgetStr) else budgetStr
+                            val sStr = if (isBangla) formatBengaliDigits(spentStr) else spentStr
+                            val pStr = if (isBangla) formatBengaliDigits(progressStr) else progressStr
+
+                            Text(
+                                text = if (isBangla) {
+                                    "এই মাসের বাজেট: $defaultCurrency$sStr / $defaultCurrency$bStr ($pStr% ব্যবহৃত)"
+                                } else {
+                                    "This month: $defaultCurrency$spentStr / $defaultCurrency$budgetStr ($progressStr% used)"
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            val indicatorColor = when {
+                                percentage < 80.0 -> MaterialTheme.colorScheme.primary
+                                percentage < 100.0 -> Color(0xFFED6C02)
+                                else -> MaterialTheme.colorScheme.error
+                            }
+
+                            LinearProgressIndicator(
+                                progress = { progressFraction },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(10.dp)
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .testTag("budget_progress_indicator"),
+                                color = indicatorColor,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+
+                            if (percentage >= 100.0) {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.errorContainer
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        text = if (isBangla) "সতর্কতা: আপনার মাসিক বাজেট শেষ!" else "Warning: Your monthly budget has been exceeded!",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontWeight = FontWeight.Bold
+                                        ),
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Week & Month grid (2 smaller cards side-by-side)
             Row(
                 modifier = Modifier
@@ -370,12 +492,23 @@ fun DashboardScreen(
                             expense = expense,
                             isBangla = isBangla,
                             onEdit = { onNavigateToEdit(expense.id) },
-                            onDelete = { viewModel.deleteExpense(expense) }
+                            onDelete = { expenseToDelete = expense }
                         )
                     }
                 }
             }
         }
+    }
+
+    expenseToDelete?.let { expense ->
+        DeleteConfirmationDialog(
+            isBangla = isBangla,
+            onDismiss = { expenseToDelete = null },
+            onConfirm = {
+                viewModel.deleteExpense(expense)
+                expenseToDelete = null
+            }
+        )
     }
 }
 
@@ -526,4 +659,13 @@ fun ExpenseItemCard(
             }
         }
     }
+}
+
+fun formatBengaliDigits(input: String): String {
+    val englishDigits = listOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+    val bengaliDigits = listOf('০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯')
+    return input.map { char ->
+        val index = englishDigits.indexOf(char)
+        if (index != -1) bengaliDigits[index] else char
+    }.joinToString("")
 }

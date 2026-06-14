@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
  * AppDatabase provides the primary Room access point to the underlying SQLite database
@@ -15,7 +17,7 @@ import androidx.room.RoomDatabase
         ExpenseEntity::class,
         ShoppingListItemEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -29,9 +31,15 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `profiles` ADD COLUMN `monthlyBudget` REAL NOT NULL DEFAULT 0.0")
+            }
+        }
+
         /**
          * Returns the thread-safe singleton instance of [AppDatabase].
-         * Uses fallbackToDestructiveMigration to clear database schema changes automatically.
+         * Uses fallbackToDestructiveMigration to clear database schema changes automatically if no direct migration is matching.
          */
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -40,6 +48,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "smart_grocery_database"
                 )
+                .addMigrations(MIGRATION_1_2)
                 .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance

@@ -31,6 +31,7 @@ import com.example.ui.AddEditExpenseScreen
 import com.example.ui.DashboardScreen
 import com.example.ui.ShoppingListScreen
 import com.example.ui.SummaryScreen
+import com.example.ui.SettingsScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.ExpenseViewModel
 
@@ -65,7 +66,7 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
     val appLanguage by viewModel.appLanguage.collectAsState()
     val isBangla = appLanguage == "Bangla"
 
-    val showBottomBar = currentRoute?.startsWith("add_edit") == false
+    val showBottomBar = currentRoute?.startsWith("add_edit") == false && currentRoute != "settings"
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -152,19 +153,37 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
                     },
                     onNavigateToEdit = { id ->
                         navController.navigate("add_edit/$id")
+                    },
+                    onNavigateToSettings = {
+                        navController.navigate("settings")
                     }
                 )
             }
 
             composable("shopping") {
                 ShoppingListScreen(
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    onNavigateToSettings = {
+                        navController.navigate("settings")
+                    }
                 )
             }
 
             composable("summary") {
                 SummaryScreen(
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    onNavigateToSettings = {
+                        navController.navigate("settings")
+                    }
+                )
+            }
+
+            composable("settings") {
+                SettingsScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
 

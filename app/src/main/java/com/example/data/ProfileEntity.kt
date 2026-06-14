@@ -13,5 +13,6 @@ data class ProfileEntity(
     val name: String,
     val colorHex: String = "#6750A4",
     val isDefault: Boolean = false,
-    val iconResId: Int = 0 // Used to track avatar color or numerical icon themes
+    val iconResId: Int = 0, // Used to track avatar color or numerical icon themes
+    val monthlyBudget: Double = 0.0
 )

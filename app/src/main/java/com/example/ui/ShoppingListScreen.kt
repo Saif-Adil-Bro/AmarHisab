@@ -35,7 +35,8 @@ import java.util.*
 @Composable
 fun ShoppingListScreen(
     viewModel: ExpenseViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToSettings: (() -> Unit)? = null
 ) {
     val items by viewModel.shoppingList.collectAsStateWithLifecycle()
     val activeProfile by viewModel.activeProfile.collectAsStateWithLifecycle()
@@ -43,6 +44,8 @@ fun ShoppingListScreen(
     val defaultCurrency by viewModel.defaultCurrency.collectAsStateWithLifecycle()
     val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
     val isBangla = appLanguage == "Bangla"
+
+    var itemToDelete by remember { mutableStateOf<ShoppingListItemEntity?>(null) }
 
     val profileThemeColor = remember(activeProfile) {
         parseHexColor(activeProfile?.colorHex ?: "#6750A4")
@@ -83,7 +86,8 @@ fun ShoppingListScreen(
         topBar = {
             ProfileSwitcherAppBar(
                 viewModel = viewModel,
-                titleText = "বাজারের তালিকা"
+                titleText = "বাজারের তালিকা",
+                onNavigateToSettings = onNavigateToSettings
             )
         }
     ) { innerPadding ->
@@ -340,7 +344,7 @@ fun ShoppingListScreen(
                                     viewModel.toggleShoppingItemPurchased(item, null)
                                 }
                             },
-                            onDelete = { viewModel.deleteShoppingItem(item) }
+                            onDelete = { itemToDelete = item }
                         )
                     }
                 }
@@ -432,6 +436,17 @@ fun ShoppingListScreen(
                         Text(if (isBangla) "বাতিল" else "Cancel")
                     }
                 }
+            }
+        )
+    }
+
+    itemToDelete?.let { item ->
+        DeleteConfirmationDialog(
+            isBangla = isBangla,
+            onDismiss = { itemToDelete = null },
+            onConfirm = {
+                viewModel.deleteShoppingItem(item)
+                itemToDelete = null
             }
         )
     }

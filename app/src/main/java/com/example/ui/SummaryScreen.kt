@@ -33,7 +33,8 @@ import java.util.*
 @Composable
 fun SummaryScreen(
     viewModel: ExpenseViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToSettings: (() -> Unit)? = null
 ) {
     val expenses by viewModel.allExpenses.collectAsStateWithLifecycle()
     val activeProfile by viewModel.activeProfile.collectAsStateWithLifecycle()
@@ -123,7 +124,8 @@ fun SummaryScreen(
         topBar = {
             ProfileSwitcherAppBar(
                 viewModel = viewModel,
-                titleText = "মাসিক বিশ্লেষণ"
+                titleText = "মাসিক বিশ্লেষণ",
+                onNavigateToSettings = onNavigateToSettings
             )
         }
     ) { innerPadding ->

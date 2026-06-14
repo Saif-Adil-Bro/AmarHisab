@@ -47,15 +47,19 @@ import com.example.viewmodel.ExpenseViewModel
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.example.viewmodel.BackupViewModel
+import androidx.compose.material.icons.filled.Delete
 import com.example.viewmodel.BackupUiState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileSwitcherAppBar(
     viewModel: ExpenseViewModel,
     titleText: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToSettings: (() -> Unit)? = null
 ) {
     val profiles by viewModel.allProfiles.collectAsStateWithLifecycle()
     val activeProfile by viewModel.activeProfile.collectAsStateWithLifecycle()
@@ -65,6 +69,7 @@ fun ProfileSwitcherAppBar(
     var isMenuExpanded by remember { mutableStateOf(false) }
     var showCreateProfileDialog by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
+    var profileToDelete by remember { mutableStateOf<ProfileEntity?>(null) }
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -213,16 +218,34 @@ fun ProfileSwitcherAppBar(
                                             text = pName,
                                             style = MaterialTheme.typography.bodyMedium,
                                             fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                            modifier = Modifier.weight(1f, fill = false)
                                         )
                                         if (isSelected) {
-                                            Spacer(modifier = Modifier.weight(1f))
+                                            Spacer(modifier = Modifier.width(8.dp))
                                             Icon(
                                                 imageVector = Icons.Default.Check,
                                                 contentDescription = "Selected",
                                                 tint = MaterialTheme.colorScheme.primary,
                                                 modifier = Modifier.size(16.dp)
                                             )
+                                        }
+                                        if (profiles.size > 1) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            IconButton(
+                                                onClick = {
+                                                    profileToDelete = profile
+                                                    isMenuExpanded = false
+                                                },
+                                                modifier = Modifier.size(24.dp).testTag("delete_profile_button_${profile.id}")
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Delete,
+                                                    contentDescription = "Delete Profile",
+                                                    tint = MaterialTheme.colorScheme.error,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 },
@@ -292,8 +315,12 @@ fun ProfileSwitcherAppBar(
                                 }
                             },
                             onClick = {
-                                showSettingsDialog = true
                                 isMenuExpanded = false
+                                if (onNavigateToSettings != null) {
+                                    onNavigateToSettings()
+                                } else {
+                                    showSettingsDialog = true
+                                }
                             },
                             modifier = Modifier.testTag("settings_dropdown_btn")
                         )
@@ -324,6 +351,33 @@ fun ProfileSwitcherAppBar(
             onDismiss = { showSettingsDialog = false }
         )
     }
+
+    profileToDelete?.let { profile ->
+        val localizedName = if (profile.name.contains("আমার পকেট")) {
+            if (isBangla) "আমার পকেট" else "Personal Pocket"
+        } else if (profile.name.contains("সংসার বাজার")) {
+            if (isBangla) "সংসার বাজার" else "Family Grocery"
+        } else if (profile.name.contains("অফিস")) {
+            if (isBangla) "অফিস প্যান্ট্রি" else "Office Pantry"
+        } else {
+            if (isBangla) profile.name.substringBefore(" (") else profile.name
+        }
+
+        DeleteConfirmationDialog(
+            isBangla = isBangla,
+            title = if (isBangla) "প্রোফাইল মুছে ফেলুন" else "Delete Profile",
+            message = if (isBangla) {
+                "আপনি কি নিশ্চিত যে আপনি '$localizedName' প্রোফাইলটি মুছে ফেলতে চান? এর সাথে যুক্ত সকল খরচ এবং বাজারের তালিকাও মুছে যাবে!"
+            } else {
+                "Are you sure you want to delete profile '$localizedName'? All associated expenses and shopping list items will be permanently deleted!"
+            },
+            onDismiss = { profileToDelete = null },
+            onConfirm = {
+                viewModel.deleteProfile(profile)
+                profileToDelete = null
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -337,6 +391,13 @@ fun SettingsDialog(
     val defaultCurrency by viewModel.defaultCurrency.collectAsStateWithLifecycle()
     val themePreference by viewModel.themePreference.collectAsStateWithLifecycle()
     val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
+    val activeProfile by viewModel.activeProfile.collectAsStateWithLifecycle()
+
+    var budgetInput by remember { mutableStateOf("") }
+    LaunchedEffect(activeProfile) {
+        val currentBudget = activeProfile?.monthlyBudget ?: 0.0
+        budgetInput = if (currentBudget > 0.0) currentBudget.toInt().toString() else ""
+    }
 
     val isBangla = appLanguage == "Bangla"
 
@@ -428,6 +489,90 @@ fun SettingsDialog(
                                 onClick = { viewModel.saveAppLanguage(lang) },
                                 label = { Text(if (lang == "Bangla") "বাংলা" else "English") }
                             )
+                        }
+                    }
+                }
+
+                // Monthly Budget Section
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = if (isBangla) "মাসিক বাজেট নির্ধারণ" else "Set Monthly Budget",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    val currentProfileName = activeProfile?.let {
+                        if (it.name.contains("আমার পকেট")) {
+                            if (isBangla) "আমার পকেট" else "Personal Pocket"
+                        } else if (it.name.contains("সংসার বাজার")) {
+                            if (isBangla) "সংসার বাজার" else "Family Grocery"
+                        } else if (it.name.contains("অফিস")) {
+                            if (isBangla) "অফিস প্যান্ট্রি" else "Office Pantry"
+                        } else {
+                            if (isBangla) it.name.substringBefore(" (") else it.name
+                        }
+                    } ?: ""
+
+                    Text(
+                        text = if (isBangla) "বর্তমান প্রোফাইল: $currentProfileName" else "Current Profile: $currentProfileName",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = budgetInput,
+                            onValueChange = { newValue ->
+                                if (newValue.all { it.isDigit() }) {
+                                    budgetInput = newValue
+                                }
+                            },
+                            placeholder = {
+                                Text(
+                                    text = if (isBangla) "বাজেটের পরিমাণ" else "Budget Amount",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("monthly_budget_input"),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                            )
+                        )
+                        Button(
+                            onClick = {
+                                val budgetVal = budgetInput.toDoubleOrNull() ?: 0.0
+                                viewModel.updateMonthlyBudget(budgetVal)
+                                android.widget.Toast.makeText(
+                                    context,
+                                    if (isBangla) "মাসিক বাজেট সফলভাবে সেভ করা হয়েছে!" else "Monthly budget saved successfully!",
+                                    android.widget.Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            modifier = Modifier.testTag("save_budget_button")
+                        ) {
+                            Text(if (isBangla) "সেভ করুন" else "Save")
                         }
                     }
                 }
