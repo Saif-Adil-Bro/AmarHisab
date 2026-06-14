@@ -27,6 +27,18 @@ import com.example.data.ExpenseEntity
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.speech.RecognizerIntent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.*
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +70,124 @@ fun AddEditExpenseScreen(
     var isItemNameExpanded by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var inputError by remember { mutableStateOf<String?>(null) }
+
+    val context = LocalContext.current
+    var isListeningState by remember { mutableStateOf(false) }
+
+    // Pulsing animation for the Mic Icon Button when active or highlighted
+    val infiniteTransition = rememberInfiniteTransition(label = "mic_pulse")
+    val micScale by infiniteTransition.animateFloat(
+        initialValue = 1.0f,
+        targetValue = 1.18f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "mic_scale"
+    )
+
+    val speechRecognizerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        isListeningState = false
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+            val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val spokenText = results?.firstOrNull() ?: ""
+            if (spokenText.isNotEmpty()) {
+                val (parsedPrice, parsedItem) = com.example.util.VoiceInputParser.parseVoiceInput(spokenText)
+                var matchesAny = false
+                if (parsedPrice != null) {
+                    priceStr = parsedPrice.toString()
+                    matchesAny = true
+                }
+                if (parsedItem != null) {
+                    itemName = parsedItem
+                    matchesAny = true
+                }
+                
+                if (matchesAny) {
+                    inputError = null
+                    val feedbackMsg = if (isBangla) {
+                        "ভয়েস থেকে সফলভাবে সনাক্ত করা হয়েছে!"
+                    } else {
+                        "Successfully parsed from voice!"
+                    }
+                    Toast.makeText(context, feedbackMsg, Toast.LENGTH_SHORT).show()
+                } else {
+                    val alertMsg = if (isBangla) {
+                        "দুঃখিত, কোনো মূল্য বা নাম খুঁজে পাওয়া যায়নি। আপনি বলেছেন: \"$spokenText\""
+                    } else {
+                        "Sorry, couldn't find a price or item name. You said: \"$spokenText\""
+                    }
+                    Toast.makeText(context, alertMsg, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            isListeningState = true
+            try {
+                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, "bn-BD")
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "bn-BD")
+                    putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, "bn-BD")
+                    putExtra(RecognizerIntent.EXTRA_PROMPT, if (isBangla) "বলুন: পঞ্চাশ টাকার আলু" else "Say e.g.: Fifty Taka Alu")
+                }
+                speechRecognizerLauncher.launch(intent)
+            } catch (e: Exception) {
+                isListeningState = false
+                Toast.makeText(
+                    context,
+                    if (isBangla) "ভয়েস রিকগনিশন উপলব্ধ নয়" else "Voice recognition is not available",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        } else {
+            Toast.makeText(
+                context,
+                if (isBangla) "রেকর্ড অডিও পারমিশন দরকার।" else "Record audio permission is required.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    val voiceOnClick = {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            isListeningState = true
+            try {
+                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, "bn-BD")
+                    putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "bn-BD")
+                    putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, "bn-BD")
+                    putExtra(RecognizerIntent.EXTRA_PROMPT, if (isBangla) "বলুন: পঞ্চাশ টাকার আলু" else "Say e.g.: Fifty Taka Alu")
+                }
+                speechRecognizerLauncher.launch(intent)
+            } catch (e: Exception) {
+                isListeningState = false
+                Toast.makeText(
+                    context,
+                    if (isBangla) "ভয়েস রিকগনিশন উপলব্ধ নয়" else "Voice recognition is not available",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        } else {
+            recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    // Dropdown and error states migrated above
 
     // Fetch and populate if edit mode or set default currency
     LaunchedEffect(expenseId, defaultCurrency, categoriesFromDb) {
@@ -169,11 +299,37 @@ fun AddEditExpenseScreen(
 
             // Item Name with Auto-Suggest (ExposedDropdownMenu style autocomplete)
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = if (isBangla) "জিনিসের নাম (Item Name)" else "Item Name",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (isBangla) "জিনিসের নাম (Item Name)" else "Item Name",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    if (isListeningState) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .scale(micScale)
+                                    .background(MaterialTheme.colorScheme.error, shape = RoundedCornerShape(50))
+                            )
+                            Text(
+                                text = if (isBangla) "শোনা হচ্ছে..." else "Listening...",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            )
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(6.dp))
                 ExposedDropdownMenuBox(
                     expanded = isItemNameExpanded && filteredSuggestions.isNotEmpty(),
@@ -194,9 +350,30 @@ fun AddEditExpenseScreen(
                         singleLine = true,
                         shape = RoundedCornerShape(14.dp),
                         trailingIcon = {
-                            if (itemName.isNotEmpty()) {
-                                IconButton(onClick = { itemName = "" }) {
-                                    Icon(imageVector = Icons.Default.Close, contentDescription = "Clear")
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(end = 4.dp)
+                            ) {
+                                if (itemName.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = { itemName = "" },
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Icon(imageVector = Icons.Default.Close, contentDescription = "Clear")
+                                    }
+                                }
+                                IconButton(
+                                    onClick = voiceOnClick,
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .scale(if (isListeningState) micScale else 1.0f)
+                                        .testTag("voice_input_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Mic,
+                                        contentDescription = "Voice Input",
+                                        tint = if (isListeningState) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                    )
                                 }
                             }
                         }

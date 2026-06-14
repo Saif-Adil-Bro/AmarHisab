@@ -194,7 +194,7 @@ fun ManageCategoriesScreen(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        items(emojis) { emoji ->
+                        items(items = emojis, key = { it }) { emoji ->
                             val isSelected = selectedEmoji == emoji
                             Box(
                                 modifier = Modifier

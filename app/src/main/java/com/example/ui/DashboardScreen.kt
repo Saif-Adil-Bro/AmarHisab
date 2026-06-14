@@ -142,7 +142,7 @@ fun DashboardScreen(
                 ),
             contentPadding = PaddingValues(
                 // Reduce top padding relative to TopAppBar to make it compact
-                top = innerPadding.calculateTopPadding() + 8.dp,
+                top = innerPadding.calculateTopPadding(),
                 bottom = innerPadding.calculateBottomPadding() + 80.dp,
                 start = 0.dp,
                 end = 0.dp
@@ -154,7 +154,7 @@ fun DashboardScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 4.dp),
+                        .padding(start = 24.dp, end = 24.dp, top = 0.dp, bottom = 2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {

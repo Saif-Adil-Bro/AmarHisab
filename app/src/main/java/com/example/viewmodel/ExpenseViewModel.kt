@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.data.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -140,6 +141,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             list.filter { it.date in start..end }
                 .sumOf { convertToDefaultCurrency(it.price, it.currency) }
         }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     val weeklyTotal: StateFlow<Double> = allExpenses
@@ -148,6 +150,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             list.filter { it.date in start..end }
                 .sumOf { convertToDefaultCurrency(it.price, it.currency) }
         }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     val monthlyTotal: StateFlow<Double> = allExpenses
@@ -156,12 +159,15 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             list.filter { it.date in start..end }
                 .sumOf { convertToDefaultCurrency(it.price, it.currency) }
         }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     val budgetUsagePercentage: StateFlow<Double> = combine(monthlyTotal, activeProfile) { total, profile ->
         val budget = profile?.monthlyBudget ?: 0.0
         calculateBudgetUsagePercentage(total, budget)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     fun calculateBudgetUsagePercentage(spent: Double, budget: Double): Double {
         return if (budget > 0.0) (spent / budget) * 100.0 else 0.0

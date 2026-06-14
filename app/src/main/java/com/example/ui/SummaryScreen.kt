@@ -315,7 +315,7 @@ fun SummaryScreen(
                     }
 
                     // Category progress bars
-                    items(categoryBreakdown) { (cat, cost) ->
+                    items(items = categoryBreakdown, key = { it.first }) { (cat, cost) ->
                         val pct = if (totalExpense > 0.0) cost / totalExpense else 0.0
                         val percentageText = String.format(Locale.getDefault(), "%.1f%%", pct * 100)
                         val formattedCost = String.format(Locale.getDefault(), "%s%.2f", defaultCurrency, cost)

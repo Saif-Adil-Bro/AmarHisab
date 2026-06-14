@@ -22,6 +22,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -68,7 +72,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            val themePref by viewModel.themePreference.collectAsState()
+            val themePref by viewModel.themePreference.collectAsStateWithLifecycle()
             val darkTheme = when (themePref) {
                 "Light" -> false
                 "Dark" -> true
@@ -87,7 +91,7 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val appLanguage by viewModel.appLanguage.collectAsState()
+    val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
     val isBangla = appLanguage == "Bangla"
 
     val showBottomBar = currentRoute?.startsWith("add_edit") == false &&
@@ -170,7 +174,11 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
         NavHost(
             navController = navController,
             startDestination = "dashboard",
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = { fadeIn(animationSpec = tween(220)) },
+            exitTransition = { fadeOut(animationSpec = tween(220)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(220)) },
+            popExitTransition = { fadeOut(animationSpec = tween(220)) }
         ) {
             composable("dashboard") {
                 DashboardScreen(
