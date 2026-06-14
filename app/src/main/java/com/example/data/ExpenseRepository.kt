@@ -103,4 +103,25 @@ class ExpenseRepository(private val database: AppDatabase) {
     suspend fun getShoppingItemById(id: Long): ShoppingListItemEntity? {
         return shoppingListDao.getItemById(id)
     }
+
+    // Backup & Restore Support
+    suspend fun getAllProfilesDirect(): List<ProfileEntity> = profileDao.getAllProfilesDirect()
+    suspend fun getAllExpensesDirect(): List<ExpenseEntity> = expenseDao.getAllExpensesDirect()
+    suspend fun getAllShoppingItemsDirect(): List<ShoppingListItemEntity> = shoppingListDao.getAllShoppingItemsDirect()
+
+    suspend fun restoreDatabase(
+        profiles: List<ProfileEntity>,
+        expenses: List<ExpenseEntity>,
+        shoppingItems: List<ShoppingListItemEntity>
+    ) {
+        // Delete dependent tables first, then profiles
+        shoppingListDao.deleteAllShoppingItems()
+        expenseDao.deleteAllExpenses()
+        profileDao.deleteAllProfiles()
+
+        // Insert profiles first, then dependent records
+        profileDao.insertProfiles(profiles)
+        expenseDao.insertExpenses(expenses)
+        shoppingListDao.insertShoppingItems(shoppingItems)
+    }
 }

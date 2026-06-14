@@ -75,4 +75,22 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM expenses WHERE id = :id")
     suspend fun getExpenseById(id: Long): ExpenseEntity?
+
+    /**
+     * Retrieves all expenses directly.
+     */
+    @Query("SELECT * FROM expenses")
+    suspend fun getAllExpensesDirect(): List<ExpenseEntity>
+
+    /**
+     * Deletes all expenses.
+     */
+    @Query("DELETE FROM expenses")
+    suspend fun deleteAllExpenses()
+
+    /**
+     * Bulk inserts expenses.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertExpenses(expenses: List<ExpenseEntity>)
 }

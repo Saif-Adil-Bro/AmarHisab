@@ -22,6 +22,11 @@ import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.CloudDownload
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
 import com.example.ui.theme.HindSiliguri
 import com.example.ui.theme.NotoSansBengali
 import androidx.compose.material3.*
@@ -39,6 +44,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.ProfileEntity
 import com.example.viewmodel.ExpenseViewModel
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.example.viewmodel.BackupViewModel
+import com.example.viewmodel.BackupUiState
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -330,6 +340,58 @@ fun SettingsDialog(
 
     val isBangla = appLanguage == "Bangla"
 
+    val context = LocalContext.current
+    val backupViewModel: BackupViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        factory = BackupViewModel.Factory(context.applicationContext as android.app.Application)
+    )
+
+    val exportState by backupViewModel.exportState.collectAsStateWithLifecycle()
+    val importState by backupViewModel.importState.collectAsStateWithLifecycle()
+
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let {
+            backupViewModel.exportData(context, it)
+        }
+    }
+
+    val openDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            backupViewModel.importData(context, it)
+        }
+    }
+
+    LaunchedEffect(exportState) {
+        when (val state = exportState) {
+            is BackupUiState.Success -> {
+                android.widget.Toast.makeText(context, state.message, android.widget.Toast.LENGTH_LONG).show()
+                backupViewModel.resetStates()
+            }
+            is BackupUiState.Error -> {
+                android.widget.Toast.makeText(context, state.errorMsg, android.widget.Toast.LENGTH_LONG).show()
+                backupViewModel.resetStates()
+            }
+            else -> {}
+        }
+    }
+
+    LaunchedEffect(importState) {
+        when (val state = importState) {
+            is BackupUiState.Success -> {
+                android.widget.Toast.makeText(context, state.message, android.widget.Toast.LENGTH_LONG).show()
+                backupViewModel.resetStates()
+            }
+            is BackupUiState.Error -> {
+                android.widget.Toast.makeText(context, state.errorMsg, android.widget.Toast.LENGTH_LONG).show()
+                backupViewModel.resetStates()
+            }
+            else -> {}
+        }
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -460,6 +522,79 @@ fun SettingsDialog(
                             )
                         }
                     }
+                }
+
+                // 5. Data Backup & Restore Selection
+                Column {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    
+                    Text(
+                        text = if (isBangla) "ডাটা ব্যাকআপ ও পুনরুদ্ধার" else "Data Backup & Restore",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+                                createDocumentLauncher.launch("amar_hisab_backup_$dateStr.json")
+                            },
+                            modifier = Modifier.weight(1f).testTag("backup_export_button"),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CloudUpload,
+                                contentDescription = "Export Backup",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (isBangla) "ব্যাকআপ ফাইল তৈরি" else "Create Backup",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                openDocumentLauncher.launch(arrayOf("application/json", "*/*"))
+                            },
+                            modifier = Modifier.weight(1f).testTag("backup_import_button"),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CloudDownload,
+                                contentDescription = "Import Backup",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (isBangla) "ব্যাকআপ পুনরুদ্ধার" else "Restore Backup",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = if (isBangla) "আপনার হিসাবের ব্যাকআপ ফাইলটি নিরাপদ জায়গায় সংরক্ষণ করুন।" else "Securely store your json backup document in a secure location.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
                 }
             }
         },

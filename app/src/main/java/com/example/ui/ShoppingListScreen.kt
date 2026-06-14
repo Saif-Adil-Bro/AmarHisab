@@ -278,7 +278,7 @@ fun ShoppingListScreen(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
                 ),
-                color = Color(0xFF49454F),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 22.dp, top = 8.dp, end = 22.dp, bottom = 6.dp)
             )
 
@@ -452,9 +452,9 @@ fun ShoppingListItemRow(
             .padding(horizontal = 16.dp, vertical = 2.dp)
             .testTag("shopping_item_${item.id}"),
         colors = CardDefaults.cardColors(
-            containerColor = if (item.isPurchased) Color(0xFFF9F7FA) else Color.White
+            containerColor = if (item.isPurchased) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surface
         ),
-        border = BorderStroke(1.dp, if (item.isPurchased) Color(0xFFE8DEF8).copy(alpha = 0.5f) else Color(0xFFF3EDF7)),
+        border = BorderStroke(1.dp, if (item.isPurchased) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = if (item.isPurchased) 0.dp else 1.dp)
     ) {
@@ -488,7 +488,7 @@ fun ShoppingListItemRow(
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        color = if (item.isPurchased) Color(0xFF49454F).copy(alpha = 0.6f) else Color(0xFF1D1B20)
+                        color = if (item.isPurchased) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(2.dp))
@@ -509,7 +509,7 @@ fun ShoppingListItemRow(
                             Text(
                                 text = "Est: $defaultCurrency${item.estimatedPrice}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF49454F)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }

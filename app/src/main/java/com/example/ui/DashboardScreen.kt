@@ -104,7 +104,7 @@ fun DashboardScreen(
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Bold
                     ),
-                    color = Color(0xFF49454F)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 activeProfile?.let { prof ->
@@ -267,7 +267,7 @@ fun DashboardScreen(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp
                             ),
-                            color = Color(0xFF1D1B20)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -276,8 +276,8 @@ fun DashboardScreen(
                 Card(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF3EDF7)),
-                    border = BorderStroke(1.dp, Color(0xFFCAC4D0)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column(
@@ -291,7 +291,7 @@ fun DashboardScreen(
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 0.5.sp
                             ),
-                            color = Color(0xFF49454F)
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -300,7 +300,7 @@ fun DashboardScreen(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp
                             ),
-                            color = Color(0xFF1D1B20)
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
@@ -313,7 +313,7 @@ fun DashboardScreen(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.0.sp
                 ),
-                color = Color(0xFF49454F),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 22.dp, top = 20.dp, end = 22.dp, bottom = 8.dp)
             )
 
@@ -412,9 +412,9 @@ fun ExpenseItemCard(
             .padding(horizontal = 16.dp, vertical = 2.dp)
             .testTag("expense_item_${expense.id}"),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
-        border = BorderStroke(1.dp, Color(0xFFF3EDF7)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         shape = RoundedCornerShape(20.dp)
     ) {
@@ -453,7 +453,7 @@ fun ExpenseItemCard(
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        color = Color(0xFF1D1B20)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Row(
@@ -469,12 +469,12 @@ fun ExpenseItemCard(
                         Text(
                             text = "•",
                             style = MaterialTheme.typography.labelMedium,
-                            color = Color(0xFF49454F).copy(alpha = 0.4f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
                         Text(
                             text = formattedDate,
                             style = MaterialTheme.typography.labelMedium,
-                            color = Color(0xFF49454F),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1
                         )
                     }

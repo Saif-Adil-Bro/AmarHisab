@@ -39,4 +39,22 @@ interface ShoppingListDao {
 
     @Query("SELECT * FROM shopping_list_items WHERE id = :id")
     suspend fun getItemById(id: Long): ShoppingListItemEntity?
+
+    /**
+     * Retrieves all shopping list items directly.
+     */
+    @Query("SELECT * FROM shopping_list_items")
+    suspend fun getAllShoppingItemsDirect(): List<ShoppingListItemEntity>
+
+    /**
+     * Deletes all shopping list items.
+     */
+    @Query("DELETE FROM shopping_list_items")
+    suspend fun deleteAllShoppingItems()
+
+    /**
+     * Bulk inserts shopping list items.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertShoppingItems(items: List<ShoppingListItemEntity>)
 }

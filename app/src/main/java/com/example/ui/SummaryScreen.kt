@@ -153,14 +153,14 @@ fun SummaryScreen(
                         letterSpacing = (-0.5).sp,
                         fontSize = 24.sp
                     ),
-                    color = Color(0xFF1D1B20)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
                     text = if (isBangla) "সংসার খরচের অনুপাত বিশ্লেষণ" else "Proportional analysis of pantry expenses",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Medium
                     ),
-                    color = Color(0xFF49454F)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -249,7 +249,7 @@ fun SummaryScreen(
                                         letterSpacing = (-1).sp,
                                         fontSize = 32.sp
                                     ),
-                                    color = Color(0xFF1D1B20)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
@@ -259,7 +259,7 @@ fun SummaryScreen(
                                         "Total ${currentMonthExpenses.size} entries have been recorded"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Color(0xFF49454F).copy(alpha = 0.7f)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -305,7 +305,7 @@ fun SummaryScreen(
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = 1.sp
                             ),
-                            color = Color(0xFF49454F),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 6.dp, top = 8.dp)
                         )
                     }
@@ -335,8 +335,8 @@ fun SummaryScreen(
                                 .fillMaxWidth()
                                 .testTag("summary_category_$cat"),
                             shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            border = BorderStroke(1.dp, Color(0xFFF3EDF7)),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                         ) {
                             Column(
@@ -368,7 +368,7 @@ fun SummaryScreen(
                                             text = localizedCat,
                                             fontWeight = FontWeight.Bold,
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = Color(0xFF1D1B20)
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                     }
 
@@ -377,12 +377,12 @@ fun SummaryScreen(
                                             text = formattedCost,
                                             fontWeight = FontWeight.Black,
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = Color(0xFF1D1B20)
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
                                             text = percentageText,
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = Color(0xFF49454F)
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
@@ -393,7 +393,7 @@ fun SummaryScreen(
                                         .fillMaxWidth()
                                         .height(8.dp)
                                         .clip(RoundedCornerShape(100.dp))
-                                        .background(Color(0xFFE8DEF8))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
                                 ) {
                                     Box(
                                         modifier = Modifier

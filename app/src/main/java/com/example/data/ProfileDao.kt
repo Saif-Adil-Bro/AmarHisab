@@ -45,4 +45,22 @@ interface ProfileDao {
      */
     @Query("UPDATE profiles SET isDefault = 0")
     suspend fun clearDefaultProfile()
+
+    /**
+     * Retrieves all profiles directly as a list for backup.
+     */
+    @Query("SELECT * FROM profiles")
+    suspend fun getAllProfilesDirect(): List<ProfileEntity>
+
+    /**
+     * Deletes all profiles.
+     */
+    @Query("DELETE FROM profiles")
+    suspend fun deleteAllProfiles()
+
+    /**
+     * Bulk inserts profiles.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertProfiles(profiles: List<ProfileEntity>)
 }
