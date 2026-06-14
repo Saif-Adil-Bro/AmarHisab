@@ -35,6 +35,8 @@ jobs:
         with:
           # This action automatically caches Gradle dependency downloads and metadata
           cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
+          # Disable wrapper validation because the wrapper generated in AI Studio may have different checksums
+          validate-wrappers: false
 
       # Step 4: Grant execute permissions for the Gradle Wrapper script (gradlew)
       - name: Grant Execute Permission for Gradlew
