@@ -27,6 +27,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.viewmodel.ReportViewModel
 import com.example.data.ExpenseEntity
 import com.example.data.CategoryEntity
 import com.example.viewmodel.ExpenseViewModel
@@ -59,13 +63,54 @@ fun DashboardScreen(
         parseHexColor(activeProfile?.colorHex ?: "#6750A4")
     }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    val reportViewModel: ReportViewModel = viewModel(
+        factory = ReportViewModel.Factory(context.applicationContext as android.app.Application)
+    )
+
+    var showExportPdfDialog by remember { mutableStateOf(false) }
+
+    val createPdfLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri ->
+        uri?.let {
+            try {
+                val outputStream = context.contentResolver.openOutputStream(it)
+                if (outputStream != null) {
+                    val profileName = activeProfile?.name ?: "আমার হিসাব"
+                    val profileId = activeProfile?.id ?: 1L
+                    
+                    reportViewModel.generatePdfStream(
+                        context = context,
+                        profileId = profileId,
+                        profileName = profileName,
+                        outputStream = outputStream,
+                        onSuccess = {
+                            android.widget.Toast.makeText(context, "PDF রিপোর্ট সফলভাবে ডাউনলোড করা হয়েছে!", android.widget.Toast.LENGTH_LONG).show()
+                        },
+                        onError = { error ->
+                            android.widget.Toast.makeText(context, error, android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    )
+                } else {
+                    android.widget.Toast.makeText(context, "ফাইল তৈরি করা সম্ভব হয়নি", android.widget.Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                android.widget.Toast.makeText(context, "ত্রুটি: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             ProfileSwitcherAppBar(
                 viewModel = viewModel,
                 titleText = "সাপ্তাহিক বাজার",
-                onNavigateToSettings = onNavigateToSettings
+                onNavigateToSettings = onNavigateToSettings,
+                onExportPdf = { showExportPdfDialog = true }
             )
         },
         floatingActionButton = {
@@ -512,6 +557,242 @@ fun DashboardScreen(
                 expenseToDelete = null
             }
         )
+    }
+
+    val reportStartDate by reportViewModel.startDate.collectAsStateWithLifecycle()
+    val reportEndDate by reportViewModel.endDate.collectAsStateWithLifecycle()
+    val reportPreset by reportViewModel.selectedPreset.collectAsStateWithLifecycle()
+    val reportIsGenerating by reportViewModel.isGenerating.collectAsStateWithLifecycle()
+
+    var showStartDatePicker by remember { mutableStateOf(false) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
+
+    if (showExportPdfDialog) {
+        val bnLocale = remember { Locale("bn", "BD") }
+        val rangeFormatter = remember { SimpleDateFormat("dd MMMM yyyy", bnLocale) }
+        
+        AlertDialog(
+            onDismissRequest = { showExportPdfDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.PictureAsPdf,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "পিডিএফ রিপোর্ট এক্সপোর্ট",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "রিপোর্টের জন্য সময়কাল নির্বাচন করুন:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    // Chips Row
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            listOf(
+                                "THIS_MONTH" to "এই মাস",
+                                "LAST_7_DAYS" to "গত ৭ দিন"
+                            ).forEach { (presetVal, label) ->
+                                FilterChip(
+                                    selected = reportPreset == presetVal,
+                                    onClick = { reportViewModel.setPreset(presetVal) },
+                                    label = { Text(label, fontSize = 12.sp) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            listOf(
+                                "LAST_30_DAYS" to "গত ৩০ দিন",
+                                "ALL_TIME" to "সব সময়"
+                            ).forEach { (presetVal, label) ->
+                                FilterChip(
+                                    selected = reportPreset == presetVal,
+                                    onClick = { reportViewModel.setPreset(presetVal) },
+                                    label = { Text(label, fontSize = 12.sp) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    }
+                    
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    
+                    // Start Date & End Date Selector trigger
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "কাস্টম সময়সীমা:",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Start Date Card
+                            OutlinedCard(
+                                onClick = { showStartDatePicker = true },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text("শুরুর তারিখ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = rangeFormatter.format(Date(reportStartDate)),
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                        fontSize = 11.sp,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                            
+                            // End Date Card
+                            OutlinedCard(
+                                onClick = { showEndDatePicker = true },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text("শেষের তারিখ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = rangeFormatter.format(Date(reportEndDate)),
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                        fontSize = 11.sp,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = "নির্বাচিত: ${rangeFormatter.format(Date(reportStartDate))} হতে ${rangeFormatter.format(Date(reportEndDate))}",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showExportPdfDialog = false
+                        val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+                        createPdfLauncher.launch("amar_hisab_report_$dateStr.pdf")
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = !reportIsGenerating,
+                    modifier = Modifier.testTag("pdf_download_confirm")
+                ) {
+                    if (reportIsGenerating) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+                    } else {
+                        Icon(imageVector = Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("রিপোর্ট ডাউনলোড")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExportPdfDialog = false }) {
+                    Text("বাতিল")
+                }
+            },
+            shape = RoundedCornerShape(20.dp)
+        )
+    }
+
+    if (showStartDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = reportStartDate
+        )
+        DatePickerDialog(
+            onDismissRequest = { showStartDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let {
+                            reportViewModel.setCustomStartDate(it)
+                        }
+                        showStartDatePicker = false
+                    }
+                ) {
+                    Text("OK", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showEndDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = reportEndDate
+        )
+        DatePickerDialog(
+            onDismissRequest = { showEndDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let {
+                            reportViewModel.setCustomEndDate(it)
+                        }
+                        showEndDatePicker = false
+                    }
+                ) {
+                    Text("OK", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 }
 

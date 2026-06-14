@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.SettingsSuggest
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -59,7 +60,8 @@ fun ProfileSwitcherAppBar(
     viewModel: ExpenseViewModel,
     titleText: String,
     modifier: Modifier = Modifier,
-    onNavigateToSettings: (() -> Unit)? = null
+    onNavigateToSettings: (() -> Unit)? = null,
+    onExportPdf: (() -> Unit)? = null
 ) {
     val profiles by viewModel.allProfiles.collectAsStateWithLifecycle()
     val activeProfile by viewModel.activeProfile.collectAsStateWithLifecycle()
@@ -106,6 +108,18 @@ fun ProfileSwitcherAppBar(
             )
         },
         actions = {
+            if (onExportPdf != null) {
+                IconButton(
+                    onClick = onExportPdf,
+                    modifier = Modifier.testTag("dashboard_pdf_export_btn")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PictureAsPdf,
+                        contentDescription = "PDF রিপোর্ট এক্সপোর্ট করুন",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
             activeProfile?.let { prof ->
                 Box(modifier = Modifier.wrapContentSize()) {
                     Row(

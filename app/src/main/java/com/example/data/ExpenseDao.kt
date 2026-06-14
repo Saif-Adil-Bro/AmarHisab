@@ -76,6 +76,9 @@ interface ExpenseDao {
     @Query("SELECT * FROM expenses WHERE id = :id")
     suspend fun getExpenseById(id: Long): ExpenseEntity?
 
+    @Query("SELECT * FROM expenses WHERE profileId = :profileId AND date >= :startDate AND date <= :endDate ORDER BY date DESC, id DESC")
+    suspend fun getExpensesInDateRange(profileId: Long, startDate: Long, endDate: Long): List<ExpenseEntity>
+
     /**
      * Retrieves all expenses directly.
      */

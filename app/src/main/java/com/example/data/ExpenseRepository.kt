@@ -117,6 +117,10 @@ class ExpenseRepository(private val database: AppDatabase) {
         return expenseDao.getExpenseById(id)
     }
 
+    suspend fun getExpensesInDateRange(profileId: Long, startDate: Long, endDate: Long): List<ExpenseEntity> {
+        return expenseDao.getExpensesInDateRange(profileId, startDate, endDate)
+    }
+
     // Shopping List
     fun getAllShoppingItems(profileId: Long): Flow<List<ShoppingListItemEntity>> =
         shoppingListDao.getAllItems(profileId)
