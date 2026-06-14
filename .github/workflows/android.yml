@@ -2,68 +2,68 @@ name: Android CI/CD Pipeline
 
 on:
   # Trigger the workflow on push to master or main branches
-    push:
-        branches:
-              - main
-                    - master
-                      # Trigger the workflow on pull requests targeting master or main branches
-                        pull_request:
-                            branches:
-                                  - main
-                                        - master
+  push:
+    branches:
+      - main
+      - master
+  # Trigger the workflow on pull requests targeting master or main branches
+  pull_request:
+    branches:
+      - main
+      - master
 
-                                        jobs:
-                                          build:
-                                              name: Build & Artifact APK
-                                                  runs-on: ubuntu-latest
+jobs:
+  build:
+    name: Build & Artifact APK
+    runs-on: ubuntu-latest
 
-                                                      steps:
-                                                            # Step 1: Checkout the repository code
-                                                                  - name: Checkout Repository
-                                                                          uses: actions/checkout@v4
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-                                                                                # Step 2: Set up Java Development Kit (JDK) 17 using Temurin
-                                                                                      - name: Set up JDK 17
-                                                                                              uses: actions/setup-java@v4
-                                                                                                      with:
-                                                                                                                distribution: 'temurin'
-                                                                                                                          java-version: '17'
+      # Step 2: Set up Java Development Kit (JDK) 17 using Temurin
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-                                                                                                                                # Step 3: Setup Gradle and manage caching automatically
-                                                                                                                                      - name: Setup Gradle
-                                                                                                                                              uses: gradle/actions/setup-gradle@v4
-                                                                                                                                                      with:
-                                                                                                                                                                # Automatically downloads and configures a clean, verified Gradle distribution
-                                                                                                                                                                          # This completely bypasses any corrupt local gradle-wrapper.jar issues in Git
-                                                                                                                                                                                    gradle-version: '9.3.1'
-                                                                                                                                                                                              # This action automatically caches Gradle dependency downloads and metadata
-                                                                                                                                                                                                        cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
-                                                                                                                                                                                                                  # Disable wrapper validation as we use the managed Gradle distribution
-                                                                                                                                                                                                                            validate-wrappers: false
+      # Step 3: Setup Gradle and manage caching automatically
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          # Automatically downloads and configures a clean, verified Gradle distribution
+          # This completely bypasses any corrupt local gradle-wrapper.jar issues in Git
+          gradle-version: '9.3.1'
+          # This action automatically caches Gradle dependency downloads and metadata
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
+          # Disable wrapper validation as we use the managed Gradle distribution
+          validate-wrappers: false
 
-                                                                                                                                                                                                                                  # Step 4: Grant execute permissions for the local wrapper script (for future local runs)
-                                                                                                                                                                                                                                        - name: Grant Execute Permission for Gradlew
-                                                                                                                                                                                                                                                run: chmod +x gradlew || true
+      # Step 4: Grant execute permissions for the local wrapper script (for future local runs)
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew || true
 
-                                                                                                                                                                                                                                                      # Step 4.5: Generate standard Android debug keystore if it doesn't exist
-                                                                                                                                                                                                                                                            - name: Generate Debug Keystore
-                                                                                                                                                                                                                                                                    run: |
-                                                                                                                                                                                                                                                                              if [ ! -f debug.keystore ]; then
-                                                                                                                                                                                                                                                                                          echo "Generating debug.keystore..."
-                                                                                                                                                                                                                                                                                                      keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-                                                                                                                                                                                                                                                                                                                else
-                                                                                                                                                                                                                                                                                                                            echo "debug.keystore already exists."
-                                                                                                                                                                                                                                                                                                                                      fi
+      # Step 4.5: Generate standard Android debug keystore if it doesn't exist
+      - name: Generate Debug Keystore
+        run: |
+          if [ ! -f debug.keystore ]; then
+            echo "Generating debug.keystore..."
+            keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          else
+            echo "debug.keystore already exists."
+          fi
 
-                                                                                                                                                                                                                                                                                                                                            # Step 5: Build Debug APK using the clean Gradle distribution
-                                                                                                                                                                                                                                                                                                                                                  - name: Build Debug APK
-                                                                                                                                                                                                                                                                                                                                                          run: gradle assembleDebug
+      # Step 5: Build Debug APK using the clean Gradle distribution
+      - name: Build Debug APK
+        run: gradle assembleDebug
 
-                                                                                                                                                                                                                                                                                                                                                                # Step 6: Upload the generated Debug APK artifact
-                                                                                                                                                                                                                                                                                                                                                                      - name: Upload Debug APK Artifact
-                                                                                                                                                                                                                                                                                                                                                                              uses: actions/upload-artifact@v4
-                                                                                                                                                                                                                                                                                                                                                                                      with:
-                                                                                                                                                                                                                                                                                                                                                                                                name: app-debug-apk
-                                                                                                                                                                                                                                                                                                                                                                                                          path: app/build/outputs/apk/debug/app-debug.apk
-                                                                                                                                                                                                                                                                                                                                                                                                                    if-no-files-found: error
-                                                                                                                                                                                                                                                                                                                                                                                                                              retention-days: 7
+      # Step 6: Upload the generated Debug APK artifact
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
