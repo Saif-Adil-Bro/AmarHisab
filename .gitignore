@@ -1,0 +1,40 @@
+# Kotlin & Android Studio / IntelliJ IDEA
+*.iml
+*.ipr
+*.iws
+.idea/
+.kotlin/
+.gradle/
+
+# Build artifacts and directories
+/build/
+app/build/
+.externalNativeBuild/
+.cxx/
+captures/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Dynamic / Local property files containing local paths or API keys
+local.properties
+.env
+.env.local
+.env.*
+
+# Signing files / Secrets (Keystores and private keys)
+*.jks
+*.keystore
+*.pepk
+*.pk8
+*.pem
+*.der
+debug.keystore
+debug.keystore.base64
+
+# Crashlytics or Google Services config files if generated locally
+google-services.json
+
+# Navigation editor temporary state
+.navigation/

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Shopping Bag Handle -->
+    <path
+        android:strokeColor="#7FECA7"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M 44,45 L 44,32 C 44,26.5 48.5,22 54,22 C 59.5,22 64,26.5 64,32 L 64,45" />
+
+    <!-- Shopping Bag Body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 37.5,41 C 35.5,41 33.7,42.5 33.4,44.5 L 29.1,78.5 C 28.7,81.5 31,84 34,84 L 74,84 C 77,84 79.3,81.5 78.9,78.5 L 74.6,44.5 C 74.3,42.5 72.5,41 70.5,41 Z" />
+
+    <!-- Calculator Display Screen inside Bag -->
+    <path
+        android:fillColor="#3A3CC2"
+        android:pathData="M 41.5,49 C 40,49 39,50 39,51.5 L 39,57.5 C 39,59 40,60 41.5,60 L 66.5,60 C 68,60 69,59 69,57.5 L 69,51.5 C 69,50 68,49 66.5,49 Z" />
+
+    <!-- Currency Sign ($ style) inside Display Screen -->
+    <path
+        android:strokeColor="#7FECA7"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M 54,51.5 L 54,57.5 M 51.5,53 C 51.5,53 52.5,52 54,52 C 55.5,52 56.5,52.8 56.5,53.8 C 56.5,55 54,55.1 53,55.6 C 51.5,56.1 51.5,57 54,57 C 55.5,57 56.5,56 56.5,56" />
+
+    <!-- Keypad Keys - Button 1 (Left, Top) -->
+    <path
+        android:fillColor="#3A3CC2"
+        android:pathData="M 39.5,64 C 38.7,64 38,64.7 38,65.5 L 38,67.5 C 38,68.3 38.7,69 39.5,69 L 45.5,69 C 46.3,69 47,68.3 47,67.5 L 47,65.5 C 47,64.7 46.3,64 45.5,64 Z" />
+
+    <!-- Keypad Keys - Button 2 (Middle, Top) -->
+    <path
+        android:fillColor="#3A3CC2"
+        android:pathData="M 51,64 C 50.2,64 49.5,64.7 49.5,65.5 L 49.5,67.5 C 49.5,68.3 50.2,69 51,69 L 57,69 C 57.8,69 58.5,68.3 58.5,67.5 L 58.5,65.5 C 58.5,64.7 57.8,64 57,64 Z" />
+
+    <!-- Keypad Keys - Button 3 (Right, Top) -->
+    <path
+        android:fillColor="#3A3CC2"
+        android:pathData="M 62.5,64 C 61.7,64 61,64.7 61,65.5 L 61,67.5 C 61,68.3 61.7,69 62.5,69 L 68.5,69 C 69.3,69 70,68.3 70,67.5 L 70,65.5 C 70,64.7 69.3,64 68.5,64 Z" />
+
+    <!-- Keypad Keys - Button 4 (Left, Middle) -->
+    <path
+        android:fillColor="#3A3CC2"
+        android:pathData="M 39.5,70.5 C 38.7,70.5 38,71.2 38,72 L 38,74 C 38,74.8 38.7,75.5 39.5,75.5 L 45.5,75.5 C 46.3,75.5 47,74.8 47,74 L 47,72 C 47,71.2 46.3,70.5 45.5,70.5 Z" />
+
+    <!-- Keypad Keys - Button 5 (Middle, Middle) -->
+    <path
+        android:fillColor="#3A3CC2"
+        android:pathData="M 51,70.5 C 50.2,70.5 49.5,71.2 49.5,72 L 49.5,74 C 49.5,74.8 50.2,75.5 51,75.5 L 57,75.5 C 57.8,75.5 58.5,74.8 58.5,74 L 58.5,72 C 58.5,71.2 57.8,70.5 57,70.5 Z" />
+
+    <!-- Keypad Keys - Button 6 (Right, Middle) -->
+    <path
+        android:fillColor="#3A3CC2"
+        android:pathData="M 62.5,70.5 C 61.7,70.5 61,71.2 61,72 L 61,74 C 61,74.8 61.7,75.5 62.5,75.5 L 68.5,75.5 C 69.3,75.5 70,74.8 70,74 L 70,72 C 70,71.2 69.3,70.5 68.5,70.5 Z" />
+
+    <!-- Keypad Keys - Button 7 (Left, Bottom) -->
+    <path
+        android:fillColor="#3A3CC2"
+        android:pathData="M 39.5,77 C 38.7,77 38,77.7 38,78.5 L 38,80.5 C 38,81.3 38.7,82 39.5,82 L 45.5,82 C 46.3,82 47,81.3 47,80.5 L 47,78.5 C 47,77.7 46.3,77 45.5,77 Z" />
+
+    <!-- Keypad Keys - Button 8 (Middle, Bottom) -->
+    <path
+        android:fillColor="#3A3CC2"
+        android:pathData="M 51,77 C 50.2,77 49.5,77.7 49.5,78.5 L 49.5,80.5 C 49.5,81.3 50.2,82 51,82 L 57,82 C 57.8,82 58.5,81.3 58.5,80.5 L 58.5,78.5 C 58.5,77.7 57.8,77 57,77 Z" />
+
+    <!-- Keypad Keys - Button 9 (Right, Bottom - tall style action button like '=' or '+') -->
+    <path
+        android:fillColor="#3A3CC2"
+        android:pathData="M 62.5,77 C 61.7,77 61,77.7 61,78.5 L 61,80.5 C 61,81.3 61.7,82 62.5,82 L 68.5,82 C 69.3,82 70,81.3 70,80.5 L 70,78.5 C 70,77.7 69.3,77 68.5,77 Z" />
+
+</vector>

@@ -1,0 +1,6 @@
+{
+  "name": "আমার হিসাব",
+  "description": "Daily Grocery Expense Tracker built with Room, Jetpack Compose, and MVVM",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
