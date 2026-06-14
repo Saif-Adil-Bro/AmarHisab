@@ -23,4 +23,13 @@ interface RecurringExpenseDao {
 
     @Query("SELECT * FROM recurring_expenses WHERE id = :id LIMIT 1")
     suspend fun getRecurringExpenseById(id: Long): RecurringExpenseEntity?
+
+    @Query("SELECT * FROM recurring_expenses")
+    suspend fun getAllRecurringExpensesDirect(): List<RecurringExpenseEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRecurringExpenses(expenses: List<RecurringExpenseEntity>)
+
+    @Query("DELETE FROM recurring_expenses")
+    suspend fun deleteAllRecurringExpenses()
 }

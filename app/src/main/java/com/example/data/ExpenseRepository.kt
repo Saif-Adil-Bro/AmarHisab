@@ -175,26 +175,36 @@ class ExpenseRepository(private val database: AppDatabase) {
     suspend fun getAllProfilesDirect(): List<ProfileEntity> = profileDao.getAllProfilesDirect()
     suspend fun getAllExpensesDirect(): List<ExpenseEntity> = expenseDao.getAllExpensesDirect()
     suspend fun getAllShoppingItemsDirect(): List<ShoppingListItemEntity> = shoppingListDao.getAllShoppingItemsDirect()
+    suspend fun getAllRecurringExpensesDirect(): List<RecurringExpenseEntity> = recurringExpenseDao.getAllRecurringExpensesDirect()
 
     suspend fun clearAllData() {
         shoppingListDao.deleteAllShoppingItems()
         expenseDao.deleteAllExpenses()
+        recurringExpenseDao.deleteAllRecurringExpenses()
+        categoryDao.deleteAllCategories()
         profileDao.deleteAllProfiles()
     }
 
     suspend fun restoreDatabase(
         profiles: List<ProfileEntity>,
         expenses: List<ExpenseEntity>,
-        shoppingItems: List<ShoppingListItemEntity>
+        shoppingItems: List<ShoppingListItemEntity>,
+        categories: List<CategoryEntity>,
+        recurringExpenses: List<RecurringExpenseEntity>
     ) {
         // Delete dependent tables first, then profiles
         shoppingListDao.deleteAllShoppingItems()
         expenseDao.deleteAllExpenses()
+        recurringExpenseDao.deleteAllRecurringExpenses()
+        categoryDao.deleteAllCategories()
         profileDao.deleteAllProfiles()
 
         // Insert profiles first, then dependent records
         profileDao.insertProfiles(profiles)
+        categoryDao.insertCategories(categories)
+        profileDao.getAllProfilesDirect() // refresh/verify
         expenseDao.insertExpenses(expenses)
         shoppingListDao.insertShoppingItems(shoppingItems)
+        recurringExpenseDao.insertRecurringExpenses(recurringExpenses)
     }
 }
