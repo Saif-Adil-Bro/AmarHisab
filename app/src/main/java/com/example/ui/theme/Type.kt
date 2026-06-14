@@ -8,21 +8,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.R
 
-// 1. Heading Font Family: Hind Siliguri (Local - mapping all styles to Hind Siliguri Medium)
-val HindSiliguri = FontFamily(
-    Font(resId = R.font.hind_siliguri_medium, weight = FontWeight.Normal),
-    Font(resId = R.font.hind_siliguri_medium, weight = FontWeight.Medium),
-    Font(resId = R.font.hind_siliguri_medium, weight = FontWeight.SemiBold),
-    Font(resId = R.font.hind_siliguri_medium, weight = FontWeight.Bold)
-)
+// 1. Heading Font Family: System Default (Highly compatible Bengali/English system typeface)
+val HindSiliguri = FontFamily.Default
 
-// 2. Body/Content Font Family: Noto Sans Bengali (Local - mapping all styles to Noto Sans Bengali Regular)
-val NotoSansBengali = FontFamily(
-    Font(resId = R.font.noto_sans_bengali_regular, weight = FontWeight.Normal),
-    Font(resId = R.font.noto_sans_bengali_regular, weight = FontWeight.Medium),
-    Font(resId = R.font.noto_sans_bengali_regular, weight = FontWeight.SemiBold),
-    Font(resId = R.font.noto_sans_bengali_regular, weight = FontWeight.Bold)
-)
+// 2. Body/Content Font Family: System Default (Highly compatible Bengali/English system typeface)
+val NotoSansBengali = FontFamily.Default
 
 val Typography = Typography(
     displayLarge = TextStyle(

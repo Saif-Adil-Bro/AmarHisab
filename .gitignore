@@ -22,6 +22,7 @@ local.properties
 .env
 .env.local
 .env.*
+!.env.example
 
 # Signing files / Secrets (Keystores and private keys)
 *.jks
