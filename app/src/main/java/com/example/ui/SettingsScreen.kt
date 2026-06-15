@@ -41,7 +41,8 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCategories: () -> Unit,
     onNavigateToRecurring: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initialAction: String? = null
 ) {
     val context = LocalContext.current
     val themePreference by viewModel.themePreference.collectAsStateWithLifecycle()
@@ -99,10 +100,11 @@ fun SettingsScreen(
     }
 
     // Modal Dialog States
-    var showThemeDialog by remember { mutableStateOf(false) }
+    var showThemeDialog by remember(initialAction) { mutableStateOf(initialAction == "theme") }
     var showBudgetDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
-    var showExportPdfDialog by remember { mutableStateOf(false) }
+    var showExportPdfDialog by remember(initialAction) { mutableStateOf(initialAction == "pdf_report") }
+    var showAboutDialog by remember(initialAction) { mutableStateOf(initialAction == "about") }
 
     val reportViewModel: ReportViewModel = viewModel(
         factory = ReportViewModel.Factory(context.applicationContext as android.app.Application)
@@ -320,12 +322,51 @@ fun SettingsScreen(
                     icon = Icons.Default.Info,
                     title = "অ্যাপের ভার্সন",
                     subtitle = "ভার্সন ১.০.০",
-                    onClick = {},
+                    onClick = { showAboutDialog = true },
                     showChevron = false,
                     testTag = "settings_version_item"
                 )
             }
         }
+    }
+
+    // Dialog: About App
+    if (showAboutDialog) {
+        val isBangla = viewModel.appLanguage.value == "Bangla"
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            title = {
+                Text(
+                    text = if (isBangla) "আমার হিসাব" else "My Calculations",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = if (isBangla) "ভার্সন ১.০.০" else "Version 1.0.0",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = if (isBangla) 
+                            "আমার হিসাব অ্যাপটি আপনার দৈনন্দিন ও সাপ্তাহিক বাজার খরচ সহজে পরিচালনা এবং নজরদারি করার জন্য ডিজাইন করা হয়েছে।" 
+                            else "Amar Hisab app is designed to easily manage and track your daily and weekly market expenses.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAboutDialog = false }) {
+                    Text(if (isBangla) "ঠিক আছে" else "OK")
+                }
+            }
+        )
     }
 
     // Dialog: Theme Selection

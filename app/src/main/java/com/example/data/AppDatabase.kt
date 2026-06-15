@@ -17,9 +17,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ExpenseEntity::class,
         ShoppingListItemEntity::class,
         CategoryEntity::class,
-        RecurringExpenseEntity::class
+        RecurringExpenseEntity::class,
+        Debt::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +31,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun shoppingListDao(): ShoppingListDao
     abstract fun categoryDao(): CategoryDao
     abstract fun recurringExpenseDao(): RecurringExpenseDao
+    abstract fun debtDao(): DebtDao
 
     companion object {
         @Volatile
@@ -84,6 +86,28 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `debts` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `profileId` INTEGER NOT NULL,
+                        `personName` TEXT NOT NULL,
+                        `amount` REAL NOT NULL,
+                        `paidAmount` REAL NOT NULL DEFAULT 0.0,
+                        `type` TEXT NOT NULL,
+                        `date` INTEGER NOT NULL,
+                        `dueDate` INTEGER,
+                        `notes` TEXT,
+                        `status` TEXT NOT NULL DEFAULT 'unpaid',
+                        `contactNumber` TEXT,
+                        FOREIGN KEY(`profileId`) REFERENCES `profiles`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_debts_profileId` ON `debts` (`profileId`)")
+            }
+        }
+
         private val DATABASE_CALLBACK = object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
@@ -109,7 +133,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "smart_grocery_database"
                 )
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 .addCallback(DATABASE_CALLBACK)
                 .fallbackToDestructiveMigration()
                 .build()

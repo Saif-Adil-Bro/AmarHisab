@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -61,7 +62,8 @@ fun ProfileSwitcherAppBar(
     titleText: String,
     modifier: Modifier = Modifier,
     onNavigateToSettings: (() -> Unit)? = null,
-    onExportPdf: (() -> Unit)? = null
+    onExportPdf: (() -> Unit)? = null,
+    onMenuClick: (() -> Unit)? = null
 ) {
     val profiles by viewModel.allProfiles.collectAsStateWithLifecycle()
     val activeProfile by viewModel.activeProfile.collectAsStateWithLifecycle()
@@ -101,12 +103,28 @@ fun ProfileSwitcherAppBar(
         modifier = modifier.testTag("profile_switcher_topappbar"),
         windowInsets = WindowInsets(0, 0, 0, 0),
         title = {
-            Text(
-                text = if (isBangla) titleText else "Weekly Pantry",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            if (onMenuClick == null) {
+                Text(
+                    text = if (isBangla) titleText else "Weekly Pantry",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        },
+        navigationIcon = {
+            if (onMenuClick != null) {
+                IconButton(
+                    onClick = onMenuClick,
+                    modifier = Modifier.testTag("appbar_menu_btn")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "মেইন মেনু",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
         },
         actions = {
             if (onExportPdf != null) {

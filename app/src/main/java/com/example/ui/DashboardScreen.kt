@@ -34,6 +34,7 @@ import com.example.viewmodel.ReportViewModel
 import com.example.data.ExpenseEntity
 import com.example.data.CategoryEntity
 import com.example.viewmodel.ExpenseViewModel
+import com.example.viewmodel.DebtViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -44,7 +45,9 @@ fun DashboardScreen(
     onNavigateToAdd: () -> Unit,
     onNavigateToEdit: (Long) -> Unit,
     modifier: Modifier = Modifier,
-    onNavigateToSettings: (() -> Unit)? = null
+    onNavigateToSettings: (() -> Unit)? = null,
+    onNavigateToDebt: (() -> Unit)? = null,
+    onMenuClick: (() -> Unit)? = null
 ) {
     val expenses by viewModel.allExpenses.collectAsStateWithLifecycle()
     val dailyTotal by viewModel.dailyTotal.collectAsStateWithLifecycle()
@@ -68,6 +71,12 @@ fun DashboardScreen(
     val reportViewModel: ReportViewModel = viewModel(
         factory = ReportViewModel.Factory(context.applicationContext as android.app.Application)
     )
+
+    val debtViewModel: DebtViewModel = viewModel(
+        factory = DebtViewModel.Factory(context.applicationContext as android.app.Application)
+    )
+    val totalBorrowed by debtViewModel.totalBorrowed.collectAsStateWithLifecycle()
+    val totalLent by debtViewModel.totalLent.collectAsStateWithLifecycle()
 
     var showExportPdfDialog by remember { mutableStateOf(false) }
 
@@ -110,7 +119,8 @@ fun DashboardScreen(
                 viewModel = viewModel,
                 titleText = "সাপ্তাহিক বাজার",
                 onNavigateToSettings = onNavigateToSettings,
-                onExportPdf = { showExportPdfDialog = true }
+                onExportPdf = { showExportPdfDialog = true },
+                onMenuClick = onMenuClick
             )
         },
         floatingActionButton = {
@@ -485,6 +495,110 @@ fun DashboardScreen(
                                 ),
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
+                        }
+                    }
+                }
+            }
+
+            // Debt Summary Card
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
+                        .clickable { onNavigateToDebt?.invoke() }
+                        .testTag("dashboard_debt_card"),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Money,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (isBangla) "কর্জ ও ঋণ হিসাব" else "Debts & Borrowing",
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = Color.Gray,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Total Borrowed
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(
+                                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    text = if (isBangla) "আমার ঋণ ( ধার নেওয়া )" else "Total Borrowed",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "$defaultCurrency ${String.format(Locale.getDefault(), "%.1f", totalBorrowed)}",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFFC62828)
+                                )
+                            }
+
+                            // Total Lent
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .background(
+                                        Color(0xFFE8F5E9), // Light green background
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .padding(10.dp)
+                            ) {
+                                Text(
+                                    text = if (isBangla) "আমার পাওনা ( ধার দেওয়া )" else "Total Lent",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color(0xFF1B5E20),
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "$defaultCurrency ${String.format(Locale.getDefault(), "%.1f", totalLent)}",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFF2E7D32)
+                                )
+                            }
                         }
                     }
                 }

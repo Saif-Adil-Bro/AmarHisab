@@ -3,10 +3,21 @@ package com.example
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.shape.RoundedCornerShape
+import kotlinx.coroutines.launch
+import com.example.ui.NavigationDrawerContent
+import com.example.ui.ThemeBottomSheet
+import com.example.ui.BackupBottomSheet
+import com.example.ui.ContactBottomSheet
+import com.example.ui.PrivacyPolicyScreen
+import com.example.viewmodel.BackupViewModel
+import com.example.viewmodel.BackupUiState
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.drawWithContent
@@ -15,9 +26,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.ListAlt
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.ListAlt
 import androidx.compose.material.icons.outlined.PieChart
+import androidx.compose.material.icons.outlined.Money
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -39,6 +52,9 @@ import com.example.ui.SummaryScreen
 import com.example.ui.SettingsScreen
 import com.example.ui.ManageCategoriesScreen
 import com.example.ui.RecurringExpensesScreen
+import com.example.ui.DebtListScreen
+import com.example.ui.AddEditDebtScreen
+import com.example.viewmodel.DebtViewModel
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.ExpenseViewModel
 import com.example.worker.RecurringExpenseWorker
@@ -87,6 +103,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainAppLayout(viewModel: ExpenseViewModel) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val application = context.applicationContext as android.app.Application
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -94,16 +112,121 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
     val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
     val isBangla = appLanguage == "Bangla"
 
-    val showBottomBar = currentRoute?.startsWith("add_edit") == false &&
-                        currentRoute != "settings" &&
-                        currentRoute != "categories" &&
-                        currentRoute != "recurring_expenses"
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            if (showBottomBar) {
-                NavigationBar(
+    var showThemeSheet by remember { mutableStateOf(false) }
+    var showBackupSheet by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+    var showContactSheet by remember { mutableStateOf(false) }
+
+    // Backup & Restore Setup at Root level
+    val backupViewModel: BackupViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        factory = BackupViewModel.Factory(application)
+    )
+    val exportState by backupViewModel.exportState.collectAsStateWithLifecycle()
+    val importState by backupViewModel.importState.collectAsStateWithLifecycle()
+
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let {
+            backupViewModel.exportData(context, it)
+        }
+    }
+
+    val openDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            backupViewModel.importData(context, it)
+        }
+    }
+
+    LaunchedEffect(exportState) {
+        when (val state = exportState) {
+            is BackupUiState.Success -> {
+                android.widget.Toast.makeText(context, state.message, android.widget.Toast.LENGTH_LONG).show()
+                backupViewModel.resetStates()
+            }
+            is BackupUiState.Error -> {
+                android.widget.Toast.makeText(context, state.errorMsg, android.widget.Toast.LENGTH_LONG).show()
+                backupViewModel.resetStates()
+            }
+            else -> {}
+        }
+    }
+
+    LaunchedEffect(importState) {
+        when (val state = importState) {
+            is BackupUiState.Success -> {
+                android.widget.Toast.makeText(context, state.message, android.widget.Toast.LENGTH_LONG).show()
+                backupViewModel.resetStates()
+            }
+            is BackupUiState.Error -> {
+                android.widget.Toast.makeText(context, state.errorMsg, android.widget.Toast.LENGTH_LONG).show()
+                backupViewModel.resetStates()
+            }
+            else -> {}
+        }
+    }
+
+    val showBottomBar = currentRoute?.startsWith("add_edit") == false &&
+                        currentRoute?.startsWith("add_edit_debt") == false &&
+                        currentRoute?.startsWith("settings") == false &&
+                        currentRoute != "categories" &&
+                        currentRoute != "recurring_expenses" &&
+                        currentRoute != "privacy_policy"
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp),
+                drawerContainerColor = MaterialTheme.colorScheme.surface
+            ) {
+                NavigationDrawerContent(
+                    currentRoute = currentRoute,
+                    onNavigate = { route ->
+                        navController.navigate(route) {
+                            popUpTo("dashboard") { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    viewModel = viewModel,
+                    onCloseDrawer = {
+                        coroutineScope.launch { drawerState.close() }
+                    },
+                    onThemeClick = {
+                        showThemeSheet = true
+                    },
+                    onBackupClick = {
+                        showBackupSheet = true
+                    },
+                    onAboutClick = {
+                        showAboutDialog = true
+                    },
+                    onPrivacyClick = {
+                        navController.navigate("privacy_policy") {
+                            popUpTo("dashboard") { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onContactClick = {
+                        showContactSheet = true
+                    }
+                )
+            }
+        },
+        gesturesEnabled = true
+    ) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                if (showBottomBar) {
+                    NavigationBar(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     tonalElevation = 8.dp,
                     modifier = Modifier.drawWithContent {
@@ -151,6 +274,23 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
                         label = { Text(if (isBangla) "বাজারের ফর্দ" else "Shopping List") }
                     )
                     NavigationBarItem(
+                        selected = currentRoute == "debt_list",
+                        onClick = {
+                            if (currentRoute != "debt_list") {
+                                navController.navigate("debt_list") {
+                                    popUpTo("dashboard")
+                                }
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = if (currentRoute == "debt_list") Icons.Filled.Money else Icons.Outlined.Money,
+                                contentDescription = "Debts"
+                            )
+                        },
+                        label = { Text(if (isBangla) "ঋণ" else "Debt") }
+                    )
+                    NavigationBarItem(
                         selected = currentRoute == "summary",
                         onClick = {
                             if (currentRoute != "summary") {
@@ -191,6 +331,12 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
                     },
                     onNavigateToSettings = {
                         navController.navigate("settings")
+                    },
+                    onNavigateToDebt = {
+                        navController.navigate("debt_list")
+                    },
+                    onMenuClick = {
+                        coroutineScope.launch { drawerState.open() }
                     }
                 )
             }
@@ -200,6 +346,9 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
                     viewModel = viewModel,
                     onNavigateToSettings = {
                         navController.navigate("settings")
+                    },
+                    onMenuClick = {
+                        coroutineScope.launch { drawerState.open() }
                     }
                 )
             }
@@ -209,11 +358,24 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
                     viewModel = viewModel,
                     onNavigateToSettings = {
                         navController.navigate("settings")
+                    },
+                    onMenuClick = {
+                        coroutineScope.launch { drawerState.open() }
                     }
                 )
             }
 
-            composable("settings") {
+            composable(
+                route = "settings?action={action}",
+                arguments = listOf(
+                    navArgument("action") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val action = backStackEntry.arguments?.getString("action")
                 SettingsScreen(
                     viewModel = viewModel,
                     onNavigateBack = {
@@ -224,7 +386,8 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
                     },
                     onNavigateToRecurring = {
                         navController.navigate("recurring_expenses")
-                    }
+                    },
+                    initialAction = action
                 )
             }
 
@@ -261,6 +424,123 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
                     }
                 )
             }
+
+            composable("debt_list") {
+                val debtViewModel: DebtViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                    factory = DebtViewModel.Factory(application)
+                )
+                DebtListScreen(
+                    viewModel = debtViewModel,
+                    onNavigateToAddEditDebt = { id ->
+                        navController.navigate("add_edit_debt/$id")
+                    },
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(
+                route = "add_edit_debt/{debtId}",
+                arguments = listOf(
+                    navArgument("debtId") { type = NavType.LongType }
+                )
+            ) { backStackEntry ->
+                val debtId = backStackEntry.arguments?.getLong("debtId") ?: 0L
+                val debtViewModel: DebtViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                    factory = DebtViewModel.Factory(application)
+                )
+                AddEditDebtScreen(
+                    viewModel = debtViewModel,
+                    debtId = debtId,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable("privacy_policy") {
+                PrivacyPolicyScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    isBangla = isBangla
+                )
+            }
+        }
+
+        if (showThemeSheet) {
+            val themePref by viewModel.themePreference.collectAsStateWithLifecycle()
+            ThemeBottomSheet(
+                onDismissRequest = { showThemeSheet = false },
+                currentTheme = themePref,
+                onThemeSelected = { selectedTheme ->
+                    viewModel.saveThemePreference(selectedTheme)
+                    showThemeSheet = false
+                }
+            )
+        }
+
+        if (showBackupSheet) {
+            BackupBottomSheet(
+                onDismissRequest = { showBackupSheet = false },
+                onExportClick = {
+                    val formatter = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault())
+                    val dateStr = formatter.format(java.util.Date())
+                    createDocumentLauncher.launch("amar_hisab_backup_$dateStr.json")
+                    showBackupSheet = false
+                },
+                onImportClick = {
+                    openDocumentLauncher.launch(arrayOf("application/json", "*/*"))
+                    showBackupSheet = false
+                }
+            )
+        }
+
+        if (showAboutDialog) {
+            AlertDialog(
+                onDismissRequest = { showAboutDialog = false },
+                title = {
+                    Text(
+                        text = if (isBangla) "আমার হিসাব" else "My Calculations",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                text = {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = if (isBangla) "ভার্সন ১.০.০" else "Version 1.0.0",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (isBangla) 
+                                "আমার হিসাব অ্যাপটি আপনার দৈনন্দিন ও সাপ্তাহিক বাজার খরচ সহজে পরিচালনা এবং নজরদারি করার জন্য ডিজাইন করা হয়েছে।" 
+                                else "Amar Hisab app is designed to easily manage and track your daily and weekly market expenses.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showAboutDialog = false }) {
+                        Text(if (isBangla) "ঠিক আছে" else "OK")
+                    }
+                }
+            )
+        }
+
+        if (showContactSheet) {
+            ContactBottomSheet(
+                onDismissRequest = { showContactSheet = false },
+                isBangla = isBangla
+            )
         }
     }
+}
 }

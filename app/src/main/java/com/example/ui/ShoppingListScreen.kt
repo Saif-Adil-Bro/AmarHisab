@@ -36,7 +36,8 @@ import java.util.*
 fun ShoppingListScreen(
     viewModel: ExpenseViewModel,
     modifier: Modifier = Modifier,
-    onNavigateToSettings: (() -> Unit)? = null
+    onNavigateToSettings: (() -> Unit)? = null,
+    onMenuClick: (() -> Unit)? = null
 ) {
     val items by viewModel.shoppingList.collectAsStateWithLifecycle()
     val activeProfile by viewModel.activeProfile.collectAsStateWithLifecycle()
@@ -87,7 +88,8 @@ fun ShoppingListScreen(
             ProfileSwitcherAppBar(
                 viewModel = viewModel,
                 titleText = "বাজারের তালিকা",
-                onNavigateToSettings = onNavigateToSettings
+                onNavigateToSettings = onNavigateToSettings,
+                onMenuClick = onMenuClick
             )
         }
     ) { innerPadding ->

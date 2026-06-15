@@ -35,7 +35,8 @@ import java.util.*
 fun SummaryScreen(
     viewModel: ExpenseViewModel,
     modifier: Modifier = Modifier,
-    onNavigateToSettings: (() -> Unit)? = null
+    onNavigateToSettings: (() -> Unit)? = null,
+    onMenuClick: (() -> Unit)? = null
 ) {
     val expenses by viewModel.allExpenses.collectAsStateWithLifecycle()
     val activeProfile by viewModel.activeProfile.collectAsStateWithLifecycle()
@@ -127,7 +128,8 @@ fun SummaryScreen(
             ProfileSwitcherAppBar(
                 viewModel = viewModel,
                 titleText = "মাসিক বিশ্লেষণ",
-                onNavigateToSettings = onNavigateToSettings
+                onNavigateToSettings = onNavigateToSettings,
+                onMenuClick = onMenuClick
             )
         }
     ) { innerPadding ->
