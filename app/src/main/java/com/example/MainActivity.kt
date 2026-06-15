@@ -526,8 +526,16 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
                 },
                 text = {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        androidx.compose.foundation.Image(
+                            painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.ic_launcher_foreground),
+                            contentDescription = "আমার হিসাব লোগো",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .padding(bottom = 8.dp)
+                        )
                         Text(
                             text = if (isBangla) "ভার্সন ১.০.০" else "Version 1.0.0",
                             fontWeight = FontWeight.Bold,

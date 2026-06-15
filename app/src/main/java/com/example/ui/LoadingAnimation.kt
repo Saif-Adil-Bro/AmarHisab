@@ -42,22 +42,21 @@ fun LoadingAnimation(
         ) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(120.dp)
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier
-                        .size(80.dp)
+                        .size(105.dp)
                         .testTag("circular_progress_indicator"),
                     color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 4.dp
+                    strokeWidth = 3.5.dp
                 )
                 
-                Text(
-                    text = "৳",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.ic_launcher_foreground),
+                    contentDescription = "আমার হিসাব লোগো",
                     modifier = Modifier
+                        .size(72.dp)
                         .scale(pulseScale)
                         .testTag("pulsing_logo")
                 )

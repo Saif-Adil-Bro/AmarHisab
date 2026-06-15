@@ -1,80 +1,193 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.google.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Shopping Bag Handle -->
+    <!-- FLOATING COINS (BACKGROUND LAYER OF THE FOREGROUND CANVAS) -->
+
+    <!-- Left background coin (Coin 3) -->
     <path
-        android:strokeColor="#7FECA7"
-        android:strokeWidth="5"
+        android:pathData="M 45 35 m -6.5 0 a 6.5 6.5 0 1 0 13 0 a 6.5 6.5 0 1 0 -13 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="38.5"
+                android:startY="28.5"
+                android:endX="51.5"
+                android:endY="41.5"
+                android:type="linear">
+                <item android:color="#2AF598" android:offset="0.0" />
+                <item android:color="#009EFD" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Coin 3 Dollar Sign ($) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.1"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M 45, 31.5 L 45, 38.5 M 43.5, 33 C 43.5,32 46.5,32 46.5,34 C 46.5,35.5 43.5,35 43.5,36.5 C 43.5,38 46.5,37.5 46.5,37" />
+
+    <!-- Right background coin (Coin 2) -->
+    <path
+        android:pathData="M 64 34 m -6 0 a 6 6 0 1 0 12 0 a 6 6 0 1 0 -12 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="58"
+                android:startY="28"
+                android:endX="70"
+                android:endY="40"
+                android:type="linear">
+                <item android:color="#2AF598" android:offset="0.0" />
+                <item android:color="#009EFD" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Coin 2 Dollar Sign ($) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.0"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M 64, 30.5 L 64, 37.5 M 62.5, 32 C 62.5,31 65.5,31 65.5,33 C 65.5,34.5 62.5,34 62.5,35.5 C 62.5,37 65.5,36.5 65.5,36" />
+
+    <!-- Top Right main coin (Coin 1) -->
+    <path
+        android:pathData="M 78 28 m -7.5 0 a 7.5 7.5 0 1 0 15 0 a 7.5 7.5 0 1 0 -15 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="70.5"
+                android:startY="20.5"
+                android:endX="85.5"
+                android:endY="35.5"
+                android:type="linear">
+                <item android:color="#2AF598" android:offset="0.0" />
+                <item android:color="#009EFD" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Coin 1 Dollar Sign ($) -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M 78, 24 L 78, 32 M 76, 26 C 76,25 79.5,25 79.5,27 C 79.5,29 C 76.5,28 76.5,30 76.5,31.5 C 76.5,33 80,32.5 80,31.5" />
+
+    <!-- Left & Right Small Dots -->
+    <path
+        android:pathData="M 23 51 m -2.5 0 a 2.5 2.5 0 1 0 5 0 a 2.5 2.5 0 1 0 -5 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="20.5"
+                android:startY="48.5"
+                android:endX="25.5"
+                android:endY="53.5"
+                android:type="linear">
+                <item android:color="#2AF598" android:offset="0.0" />
+                <item android:color="#009EFD" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M 85 51 m -2.5 0 a 2.5 2.5 0 1 0 5 0 a 2.5 2.5 0 1 0 -5 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="82.5"
+                android:startY="48.5"
+                android:endX="87.5"
+                android:endY="53.5"
+                android:type="linear">
+                <item android:color="#2AF598" android:offset="0.0" />
+                <item android:color="#009EFD" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- SHOPPING BAG HANDLE -->
+    <path
+        android:strokeColor="#9F2CFF"
+        android:strokeWidth="4.5"
         android:strokeLineCap="round"
         android:fillColor="#00000000"
-        android:pathData="M 44,45 L 44,32 C 44,26.5 48.5,22 54,22 C 59.5,22 64,26.5 64,32 L 64,45" />
+        android:pathData="M 42,46 C 41,28 67,28 66,46" />
 
-    <!-- Shopping Bag Body -->
+    <!-- Silver/White studs on top of bag where handles attach -->
+    <path
+        android:fillColor="#EAEBF5"
+        android:pathData="M 42 46 m -2 0 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0" />
+    <path
+        android:fillColor="#EAEBF5"
+        android:pathData="M 66 46 m -2 0 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0" />
+
+    <!-- SHOPPING BAG BODY (With Gorgeous Purple Gradient) -->
+    <path
+        android:pathData="M 34,44 L 74,44 C 76,44 77,45.5 76.8,47 L 81.2,78.5 C 81.6,81 79.5,83 77,83 L 31,83 C 28.5,83 26.4,81 26.8,78.5 L 31.2,47 C 31,45.5 32,44 34,44 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="26"
+                android:startY="44"
+                android:endX="81"
+                android:endY="83"
+                android:type="linear">
+                <item android:color="#B621FE" android:offset="0.0" />
+                <item android:color="#5C26EC" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Highlight layer for visual depth of the bag's collar -->
+    <path
+        android:fillColor="#30FFFFFF"
+        android:pathData="M 34,44 L 74,44 L 73.2,47.5 L 34.8,47.5 Z" />
+
+    <!-- WHITE CALCULATOR GRAPHIC (FRONT LAYER OF BAG) -->
+    <!-- Calculator body rounded box -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M 37.5,41 C 35.5,41 33.7,42.5 33.4,44.5 L 29.1,78.5 C 28.7,81.5 31,84 34,84 L 74,84 C 77,84 79.3,81.5 78.9,78.5 L 74.6,44.5 C 74.3,42.5 72.5,41 70.5,41 Z" />
+        android:pathData="M 44,53 L 64,53 C 65.5,53 66.5,54 66.5,55.5 L 66.5,74.5 C 66.5,76 65.5,77 64,77 L 44,77 C 42.5,77 41.5,76 41.5,74.5 L 41.5,55.5 C 41.5,54 42.5,53 44,53 Z" />
 
-    <!-- Calculator Display Screen inside Bag -->
+    <!-- Calculator screen rectangle outline -->
     <path
-        android:fillColor="#3A3CC2"
-        android:pathData="M 41.5,49 C 40,49 39,50 39,51.5 L 39,57.5 C 39,59 40,60 41.5,60 L 66.5,60 C 68,60 69,59 69,57.5 L 69,51.5 C 69,50 68,49 66.5,49 Z" />
-
-    <!-- Currency Sign ($ style) inside Display Screen -->
-    <path
-        android:strokeColor="#7FECA7"
+        android:strokeColor="#5C26EC"
         android:strokeWidth="1.5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="#00000000"
-        android:pathData="M 54,51.5 L 54,57.5 M 51.5,53 C 51.5,53 52.5,52 54,52 C 55.5,52 56.5,52.8 56.5,53.8 C 56.5,55 54,55.1 53,55.6 C 51.5,56.1 51.5,57 54,57 C 55.5,57 56.5,56 56.5,56" />
+        android:pathData="M 44.5,57.5 H 63.5 V 61.5 H 44.5 Z" />
 
-    <!-- Keypad Keys - Button 1 (Left, Top) -->
+    <!-- Calculator keys - Row 1 -->
     <path
-        android:fillColor="#3A3CC2"
-        android:pathData="M 39.5,64 C 38.7,64 38,64.7 38,65.5 L 38,67.5 C 38,68.3 38.7,69 39.5,69 L 45.5,69 C 46.3,69 47,68.3 47,67.5 L 47,65.5 C 47,64.7 46.3,64 45.5,64 Z" />
+        android:fillColor="#5C26EC"
+        android:pathData="M 45.5 66.5 m -1.6 0 a 1.6 1.6 0 1 0 3.2 0 a 1.6 1.6 0 1 0 -3.2 0" />
+    <path
+        android:fillColor="#5C26EC"
+        android:pathData="M 50.5 66.5 m -1.6 0 a 1.6 1.6 0 1 0 3.2 0 a 1.6 1.6 0 1 0 -3.2 0" />
+    <path
+        android:fillColor="#5C26EC"
+        android:pathData="M 55.5 66.5 m -1.6 0 a 1.6 1.6 0 1 0 3.2 0 a 1.6 1.6 0 1 0 -3.2 0" />
+    <path
+        android:fillColor="#5C26EC"
+        android:pathData="M 60.5 66.5 m -1.6 0 a 1.6 1.6 0 1 0 3.2 0 a 1.6 1.6 0 1 0 -3.2 0" />
 
-    <!-- Keypad Keys - Button 2 (Middle, Top) -->
+    <!-- Calculator keys - Row 2 -->
     <path
-        android:fillColor="#3A3CC2"
-        android:pathData="M 51,64 C 50.2,64 49.5,64.7 49.5,65.5 L 49.5,67.5 C 49.5,68.3 50.2,69 51,69 L 57,69 C 57.8,69 58.5,68.3 58.5,67.5 L 58.5,65.5 C 58.5,64.7 57.8,64 57,64 Z" />
-
-    <!-- Keypad Keys - Button 3 (Right, Top) -->
+        android:fillColor="#5C26EC"
+        android:pathData="M 45.5 71.5 m -1.6 0 a 1.6 1.6 0 1 0 3.2 0 a 1.6 1.6 0 1 0 -3.2 0" />
     <path
-        android:fillColor="#3A3CC2"
-        android:pathData="M 62.5,64 C 61.7,64 61,64.7 61,65.5 L 61,67.5 C 61,68.3 61.7,69 62.5,69 L 68.5,69 C 69.3,69 70,68.3 70,67.5 L 70,65.5 C 70,64.7 69.3,64 68.5,64 Z" />
-
-    <!-- Keypad Keys - Button 4 (Left, Middle) -->
+        android:fillColor="#5C26EC"
+        android:pathData="M 50.5 71.5 m -1.6 0 a 1.6 1.6 0 1 0 3.2 0 a 1.6 1.6 0 1 0 -3.2 0" />
     <path
-        android:fillColor="#3A3CC2"
-        android:pathData="M 39.5,70.5 C 38.7,70.5 38,71.2 38,72 L 38,74 C 38,74.8 38.7,75.5 39.5,75.5 L 45.5,75.5 C 46.3,75.5 47,74.8 47,74 L 47,72 C 47,71.2 46.3,70.5 45.5,70.5 Z" />
-
-    <!-- Keypad Keys - Button 5 (Middle, Middle) -->
+        android:fillColor="#5C26EC"
+        android:pathData="M 55.5 71.5 m -1.6 0 a 1.6 1.6 0 1 0 3.2 0 a 1.6 1.6 0 1 0 -3.2 0" />
     <path
-        android:fillColor="#3A3CC2"
-        android:pathData="M 51,70.5 C 50.2,70.5 49.5,71.2 49.5,72 L 49.5,74 C 49.5,74.8 50.2,75.5 51,75.5 L 57,75.5 C 57.8,75.5 58.5,74.8 58.5,74 L 58.5,72 C 58.5,71.2 57.8,70.5 57,70.5 Z" />
-
-    <!-- Keypad Keys - Button 6 (Right, Middle) -->
-    <path
-        android:fillColor="#3A3CC2"
-        android:pathData="M 62.5,70.5 C 61.7,70.5 61,71.2 61,72 L 61,74 C 61,74.8 61.7,75.5 62.5,75.5 L 68.5,75.5 C 69.3,75.5 70,74.8 70,74 L 70,72 C 70,71.2 69.3,70.5 68.5,70.5 Z" />
-
-    <!-- Keypad Keys - Button 7 (Left, Bottom) -->
-    <path
-        android:fillColor="#3A3CC2"
-        android:pathData="M 39.5,77 C 38.7,77 38,77.7 38,78.5 L 38,80.5 C 38,81.3 38.7,82 39.5,82 L 45.5,82 C 46.3,82 47,81.3 47,80.5 L 47,78.5 C 47,77.7 46.3,77 45.5,77 Z" />
-
-    <!-- Keypad Keys - Button 8 (Middle, Bottom) -->
-    <path
-        android:fillColor="#3A3CC2"
-        android:pathData="M 51,77 C 50.2,77 49.5,77.7 49.5,78.5 L 49.5,80.5 C 49.5,81.3 50.2,82 51,82 L 57,82 C 57.8,82 58.5,81.3 58.5,80.5 L 58.5,78.5 C 58.5,77.7 57.8,77 57,77 Z" />
-
-    <!-- Keypad Keys - Button 9 (Right, Bottom - tall style action button like '=' or '+') -->
-    <path
-        android:fillColor="#3A3CC2"
-        android:pathData="M 62.5,77 C 61.7,77 61,77.7 61,78.5 L 61,80.5 C 61,81.3 61.7,82 62.5,82 L 68.5,82 C 69.3,82 70,81.3 70,80.5 L 70,78.5 C 70,77.7 69.3,77 68.5,77 Z" />
+        android:fillColor="#5C26EC"
+        android:pathData="M 60.5 71.5 m -1.6 0 a 1.6 1.6 0 1 0 3.2 0 a 1.6 1.6 0 1 0 -3.2 0" />
 
 </vector>
