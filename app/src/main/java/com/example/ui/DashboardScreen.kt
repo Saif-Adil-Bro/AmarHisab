@@ -139,7 +139,21 @@ fun DashboardScreen(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
+        var isLoading by remember { mutableStateOf(true) }
+        LaunchedEffect(customCategories, activeProfile) {
+            if (customCategories.isNotEmpty() && activeProfile != null) {
+                kotlinx.coroutines.delay(400)
+                isLoading = false
+            }
+        }
+
+        if (isLoading) {
+            LoadingAnimation(
+                modifier = Modifier.padding(innerPadding),
+                message = if (isBangla) "ড্যাশবোর্ড লোড হচ্ছে..." else "Loading dashboard..."
+            )
+        } else {
+            LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
@@ -919,6 +933,7 @@ fun DashboardScreen(
         ) {
             DatePicker(state = datePickerState)
         }
+    }
     }
 }
 

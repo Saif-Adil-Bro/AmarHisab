@@ -98,6 +98,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
                 repository.allProfiles.map { list -> list.find { it.id == id } }
             }
         }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -106,6 +107,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             if (id == null) flowOf(emptyList())
             else repository.getAllExpenses(id)
         }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -114,6 +116,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             if (id == null) flowOf(emptyList())
             else repository.getDistinctItemNames(id)
         }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -122,6 +125,7 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
             if (id == null) flowOf(emptyList())
             else repository.getAllShoppingItems(id)
         }
+        .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private fun convertToDefaultCurrency(price: Double, currency: String): Double {

@@ -8,6 +8,19 @@ class ExpenseRepository(private val database: AppDatabase) {
     private val shoppingListDao = database.shoppingListDao()
     private val categoryDao = database.categoryDao()
 
+    // In-memory cache for frequently accessed totals & recent expenses
+    private val todayTotalCache = java.util.concurrent.ConcurrentHashMap<String, Double?>()
+    private val weekTotalCache = java.util.concurrent.ConcurrentHashMap<String, Double?>()
+    private val monthTotalCache = java.util.concurrent.ConcurrentHashMap<String, Double?>()
+    private val expensesInDateRangeCache = java.util.concurrent.ConcurrentHashMap<String, List<ExpenseEntity>>()
+
+    fun clearCache() {
+        todayTotalCache.clear()
+        weekTotalCache.clear()
+        monthTotalCache.clear()
+        expensesInDateRangeCache.clear()
+    }
+
     // Categories
     val allCategories: Flow<List<CategoryEntity>> = categoryDao.getAllCategories()
 
@@ -81,35 +94,56 @@ class ExpenseRepository(private val database: AppDatabase) {
         expenseDao.getDailyTotal(profileId, startOfDay, endOfDay)
 
     suspend fun getTodayTotal(profileId: Long, startOfDay: Long, endOfDay: Long): Double? {
-        return expenseDao.getTodayTotal(profileId, startOfDay, endOfDay)
+        val key = "$profileId-$startOfDay-$endOfDay"
+        if (todayTotalCache.containsKey(key)) {
+            return todayTotalCache[key]
+        }
+        val result = expenseDao.getTodayTotal(profileId, startOfDay, endOfDay)
+        todayTotalCache[key] = result
+        return result
     }
 
     fun getWeeklyTotal(profileId: Long, startOfWeek: Long, endOfWeek: Long): Flow<Double?> =
         expenseDao.getWeeklyTotal(profileId, startOfWeek, endOfWeek)
 
     suspend fun getWeekTotal(profileId: Long, startOfWeek: Long, endOfWeek: Long): Double? {
-        return expenseDao.getWeekTotal(profileId, startOfWeek, endOfWeek)
+        val key = "$profileId-$startOfWeek-$endOfWeek"
+        if (weekTotalCache.containsKey(key)) {
+            return weekTotalCache[key]
+        }
+        val result = expenseDao.getWeekTotal(profileId, startOfWeek, endOfWeek)
+        weekTotalCache[key] = result
+        return result
     }
 
     fun getMonthlyTotal(profileId: Long, startOfMonth: Long, endOfMonth: Long): Flow<Double?> =
         expenseDao.getMonthlyTotal(profileId, startOfMonth, endOfMonth)
 
     suspend fun getMonthTotal(profileId: Long, startOfMonth: Long, endOfMonth: Long): Double? {
-        return expenseDao.getMonthTotal(profileId, startOfMonth, endOfMonth)
+        val key = "$profileId-$startOfMonth-$endOfMonth"
+        if (monthTotalCache.containsKey(key)) {
+            return monthTotalCache[key]
+        }
+        val result = expenseDao.getMonthTotal(profileId, startOfMonth, endOfMonth)
+        monthTotalCache[key] = result
+        return result
     }
 
     fun getDistinctItemNames(profileId: Long): Flow<List<String>> =
         expenseDao.getDistinctItemNames(profileId)
 
     suspend fun insertExpense(expense: ExpenseEntity): Long {
+        clearCache()
         return expenseDao.insertExpense(expense)
     }
 
     suspend fun updateExpense(expense: ExpenseEntity) {
+        clearCache()
         expenseDao.updateExpense(expense)
     }
 
     suspend fun deleteExpense(expense: ExpenseEntity) {
+        clearCache()
         expenseDao.deleteExpense(expense)
     }
 
@@ -118,7 +152,13 @@ class ExpenseRepository(private val database: AppDatabase) {
     }
 
     suspend fun getExpensesInDateRange(profileId: Long, startDate: Long, endDate: Long): List<ExpenseEntity> {
-        return expenseDao.getExpensesInDateRange(profileId, startDate, endDate)
+        val key = "$profileId-$startDate-$endDate"
+        if (expensesInDateRangeCache.containsKey(key)) {
+            return expensesInDateRangeCache[key] ?: emptyList()
+        }
+        val result = expenseDao.getExpensesInDateRange(profileId, startDate, endDate)
+        expensesInDateRangeCache[key] = result
+        return result
     }
 
     // Shopping List
@@ -180,6 +220,7 @@ class ExpenseRepository(private val database: AppDatabase) {
     suspend fun getAllDebtsDirect(): List<Debt> = debtDao.getAllDebtsDirect()
 
     suspend fun clearAllData() {
+        clearCache()
         shoppingListDao.deleteAllShoppingItems()
         expenseDao.deleteAllExpenses()
         recurringExpenseDao.deleteAllRecurringExpenses()
@@ -196,6 +237,7 @@ class ExpenseRepository(private val database: AppDatabase) {
         recurringExpenses: List<RecurringExpenseEntity>,
         debts: List<Debt>
     ) {
+        clearCache()
         // Delete dependent tables first, then profiles
         shoppingListDao.deleteAllShoppingItems()
         expenseDao.deleteAllExpenses()

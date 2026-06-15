@@ -93,7 +93,21 @@ fun ShoppingListScreen(
             )
         }
     ) { innerPadding ->
-        Column(
+        var isLoading by remember { mutableStateOf(true) }
+        LaunchedEffect(activeProfile) {
+            if (activeProfile != null) {
+                kotlinx.coroutines.delay(400)
+                isLoading = false
+            }
+        }
+
+        if (isLoading) {
+            LoadingAnimation(
+                modifier = Modifier.padding(innerPadding),
+                message = if (isBangla) "বাজারের তালিকা লোড হচ্ছে..." else "Loading shopping list..."
+            )
+        } else {
+            Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -451,6 +465,7 @@ fun ShoppingListScreen(
                 itemToDelete = null
             }
         )
+    }
     }
 }
 

@@ -107,7 +107,21 @@ fun DebtListScreen(
             }
         }
     ) { innerPadding ->
-        Column(
+        var isLoading by remember { mutableStateOf(true) }
+        LaunchedEffect(debts) {
+            if (debts.isNotEmpty() || true) {
+                kotlinx.coroutines.delay(400)
+                isLoading = false
+            }
+        }
+
+        if (isLoading) {
+            LoadingAnimation(
+                modifier = Modifier.padding(innerPadding),
+                message = "ঋণ ও কর্জের তালিকা লোড হচ্ছে..."
+            )
+        } else {
+            Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -500,6 +514,7 @@ fun DebtListScreen(
                 }
             }
         )
+    }
     }
 }
 

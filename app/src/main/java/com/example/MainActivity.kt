@@ -3,6 +3,7 @@ package com.example
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.shape.RoundedCornerShape
 import kotlinx.coroutines.launch
 import com.example.ui.NavigationDrawerContent
@@ -69,6 +70,18 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
+        splashScreen.setOnExitAnimationListener { splashScreenView ->
+            val fadeOut = android.view.animation.AlphaAnimation(1f, 0f).apply {
+                duration = 500L
+                fillAfter = true
+            }
+            splashScreenView.view.startAnimation(fadeOut)
+            splashScreenView.view.postDelayed({
+                splashScreenView.remove()
+            }, 500L)
+        }
+        
         super.onCreate(savedInstanceState)
         
         try {
