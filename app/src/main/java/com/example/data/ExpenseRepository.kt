@@ -150,6 +150,7 @@ class ExpenseRepository(private val database: AppDatabase) {
 
     // Recurring Expenses
     private val recurringExpenseDao = database.recurringExpenseDao()
+    private val debtDao = database.debtDao()
 
     fun getAllRecurringExpenses(profileId: Long): Flow<List<RecurringExpenseEntity>> =
         recurringExpenseDao.getAllRecurringExpenses(profileId)
@@ -176,11 +177,13 @@ class ExpenseRepository(private val database: AppDatabase) {
     suspend fun getAllExpensesDirect(): List<ExpenseEntity> = expenseDao.getAllExpensesDirect()
     suspend fun getAllShoppingItemsDirect(): List<ShoppingListItemEntity> = shoppingListDao.getAllShoppingItemsDirect()
     suspend fun getAllRecurringExpensesDirect(): List<RecurringExpenseEntity> = recurringExpenseDao.getAllRecurringExpensesDirect()
+    suspend fun getAllDebtsDirect(): List<Debt> = debtDao.getAllDebtsDirect()
 
     suspend fun clearAllData() {
         shoppingListDao.deleteAllShoppingItems()
         expenseDao.deleteAllExpenses()
         recurringExpenseDao.deleteAllRecurringExpenses()
+        debtDao.deleteAllDebts()
         categoryDao.deleteAllCategories()
         profileDao.deleteAllProfiles()
     }
@@ -190,12 +193,14 @@ class ExpenseRepository(private val database: AppDatabase) {
         expenses: List<ExpenseEntity>,
         shoppingItems: List<ShoppingListItemEntity>,
         categories: List<CategoryEntity>,
-        recurringExpenses: List<RecurringExpenseEntity>
+        recurringExpenses: List<RecurringExpenseEntity>,
+        debts: List<Debt>
     ) {
         // Delete dependent tables first, then profiles
         shoppingListDao.deleteAllShoppingItems()
         expenseDao.deleteAllExpenses()
         recurringExpenseDao.deleteAllRecurringExpenses()
+        debtDao.deleteAllDebts()
         categoryDao.deleteAllCategories()
         profileDao.deleteAllProfiles()
 
@@ -206,5 +211,6 @@ class ExpenseRepository(private val database: AppDatabase) {
         expenseDao.insertExpenses(expenses)
         shoppingListDao.insertShoppingItems(shoppingItems)
         recurringExpenseDao.insertRecurringExpenses(recurringExpenses)
+        debtDao.insertDebts(debts)
     }
 }

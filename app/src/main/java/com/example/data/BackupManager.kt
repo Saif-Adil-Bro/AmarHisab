@@ -27,6 +27,7 @@ class BackupManager(private val repository: ExpenseRepository) {
         val shoppingItems = repository.getAllShoppingItemsDirect()
         val categories = repository.getAllCategoriesDirect()
         val recurringExpenses = repository.getAllRecurringExpensesDirect()
+        val debts = repository.getAllDebtsDirect()
 
         val root = JSONObject()
         root.put("version", 1)
@@ -115,6 +116,37 @@ class BackupManager(private val repository: ExpenseRepository) {
             itemsArray.put(iObj)
         }
         root.put("shopping_list_items", itemsArray)
+
+        // 7. Serialize Debts
+        val debtsArray = JSONArray()
+        for (debt in debts) {
+            val dObj = JSONObject()
+            dObj.put("id", debt.id)
+            dObj.put("profileId", debt.profileId)
+            dObj.put("personName", debt.personName)
+            dObj.put("amount", debt.amount)
+            dObj.put("paidAmount", debt.paidAmount)
+            dObj.put("type", debt.type)
+            dObj.put("date", debt.date)
+            if (debt.dueDate != null) {
+                dObj.put("dueDate", debt.dueDate)
+            } else {
+                dObj.put("dueDate", JSONObject.NULL)
+            }
+            if (debt.notes != null) {
+                dObj.put("notes", debt.notes)
+            } else {
+                dObj.put("notes", JSONObject.NULL)
+            }
+            dObj.put("status", debt.status)
+            if (debt.contactNumber != null) {
+                dObj.put("contactNumber", debt.contactNumber)
+            } else {
+                dObj.put("contactNumber", JSONObject.NULL)
+            }
+            debtsArray.put(dObj)
+        }
+        root.put("debts", debtsArray)
 
         return root.toString(4)
     }
@@ -283,8 +315,35 @@ class BackupManager(private val repository: ExpenseRepository) {
                 }
             }
 
+            // Parse debts list
+            val debts = mutableListOf<Debt>()
+            if (root.has("debts")) {
+                val array = root.getJSONArray("debts")
+                for (i in 0 until array.length()) {
+                    val dObj = array.getJSONObject(i)
+                    val dueDateValue = if (dObj.isNull("dueDate")) null else dObj.getLong("dueDate")
+                    val notesValue = if (dObj.isNull("notes")) null else dObj.getString("notes")
+                    val contactValue = if (dObj.isNull("contactNumber")) null else dObj.getString("contactNumber")
+                    debts.add(
+                        Debt(
+                            id = dObj.getLong("id"),
+                            profileId = dObj.getLong("profileId"),
+                            personName = dObj.getString("personName"),
+                            amount = dObj.getDouble("amount"),
+                            paidAmount = dObj.optDouble("paidAmount", 0.0),
+                            type = dObj.getString("type"),
+                            date = dObj.optLong("date", System.currentTimeMillis()),
+                            dueDate = dueDateValue,
+                            notes = notesValue,
+                            status = dObj.optString("status", "unpaid"),
+                            contactNumber = contactValue
+                        )
+                    )
+                }
+            }
+
             // Overwrite database tables using repository controller
-            repository.restoreDatabase(profiles, expenses, shoppingItems, categories, recurringExpenses)
+            repository.restoreDatabase(profiles, expenses, shoppingItems, categories, recurringExpenses, debts)
             Result.success(Unit)
         } catch (e: Exception) {
             e.printStackTrace()

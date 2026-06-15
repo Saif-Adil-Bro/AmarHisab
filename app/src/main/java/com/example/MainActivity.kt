@@ -17,6 +17,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
@@ -540,6 +543,39 @@ fun MainAppLayout(viewModel: ExpenseViewModel) {
                 onDismissRequest = { showContactSheet = false },
                 isBangla = isBangla
             )
+        }
+
+        if (exportState is BackupUiState.Loading || importState is BackupUiState.Loading) {
+            Dialog(
+                onDismissRequest = {} // Non-cancelable
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    tonalElevation = 6.dp,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .testTag("backup_loader_dialog")
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.testTag("backup_progress_indicator")
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = if (isBangla) "ডাটা প্রক্রিয়াকরণ করা হচ্ছে..." else "Processing data...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
         }
     }
 }

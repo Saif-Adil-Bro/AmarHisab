@@ -49,9 +49,9 @@ class BackupViewModel(
             _exportState.value = BackupUiState.Loading
             val success = backupManager.exportDataToUri(context, uri)
             _exportState.value = if (success) {
-                BackupUiState.Success("আপনার সকল প্রোফাইল ও হিসাব সফলভাবে সংরক্ষণ করা হয়েছে!")
+                BackupUiState.Success("ডাটা সফলভাবে এক্সপোর্ট হয়েছে।")
             } else {
-                BackupUiState.Error("ডাটা ব্যাকআপ বা এক্সপোর্ট করতে সমস্যা হয়েছে!")
+                BackupUiState.Error("ডাটা ইমপোর্ট/এক্সপোর্ট ব্যর্থ হয়েছে।")
             }
         }
     }
@@ -65,10 +65,10 @@ class BackupViewModel(
             val result = backupManager.importDataFromUri(context, uri)
             _importState.value = result.fold(
                 onSuccess = {
-                    BackupUiState.Success("আপনার ব্যাকআপ সফলভাবে পুনরুদ্ধার করা হয়েছে!")
+                    BackupUiState.Success("ডাটা সফলভাবে ইমপোর্ট হয়েছে।")
                 },
                 onFailure = { error ->
-                    BackupUiState.Error(error.message ?: "ডাটা পুনরুদ্ধার সম্পূর্ণ করা যায়নি!")
+                    BackupUiState.Error("ডাটা ইমপোর্ট/এক্সপোর্ট ব্যর্থ হয়েছে।")
                 }
             )
         }

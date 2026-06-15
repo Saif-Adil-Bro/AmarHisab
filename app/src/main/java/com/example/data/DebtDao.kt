@@ -34,4 +34,13 @@ interface DebtDao {
 
     @Query("SELECT DISTINCT personName FROM debts WHERE profileId = :profileId")
     fun getDistinctDebtPersonNames(profileId: Long): Flow<List<String>>
+
+    @Query("SELECT * FROM debts")
+    suspend fun getAllDebtsDirect(): List<Debt>
+
+    @Query("DELETE FROM debts")
+    suspend fun deleteAllDebts()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDebts(debts: List<Debt>)
 }
